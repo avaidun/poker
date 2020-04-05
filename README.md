@@ -5,4 +5,4 @@ Adopted from the work from: git@github.com:geobalas/Poker.git (original licesce:
 
 A poker application running on node.js with socket.io, using angularJS on the front-end for data binding.
 
-This fork is created to coontinue that work
+This fork is created to continue that work
