@@ -243,6 +243,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 			}
 		});
 	}
+	
 	// Start game
 	$scope.startGame = function() {
 		socket.emit( 'startGame', {'tableId': $routeParams.tableId}, function( response ) {
@@ -253,7 +254,6 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 			else if( response.error ) {
 				console.log(response.error)
 				$scope.$digest();
-				
 			}
 		})
 	}
