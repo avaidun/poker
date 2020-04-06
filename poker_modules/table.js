@@ -621,8 +621,11 @@ Table.prototype.playerSatIn = function( seat ) {
 	this.playersSittingInCount++;
 	
 	this.emitEvent( 'table-data', this.public );
-	
 };
+
+/**
+ * Start a game if there are more than 2 players
+ */
 Table.prototype.startGame = function() {
 	if( !this.gameIsOn && this.playersSittingInCount > 1 ) {
 		// Initialize the game
@@ -632,6 +635,7 @@ Table.prototype.startGame = function() {
 	}
 	return false;
 }
+
 /**
  * Changes the data of the table when a player leaves
  * @param int seat

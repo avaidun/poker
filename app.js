@@ -231,8 +231,12 @@ io.sockets.on('connection', function( socket ) {
 			callback( { 'success': true } );
 		}
 	});
+
+	/**
+	 * Start a game if there are more than 2 players
+	 * @param function callback
+	 */
 	socket.on('startGame', function(data,callback) {
-		
 		if (tables[data.tableId].startGame()) {
 			callback( { 'success': true } );
 		}
