@@ -621,14 +621,17 @@ Table.prototype.playerSatIn = function( seat ) {
 	this.playersSittingInCount++;
 	
 	this.emitEvent( 'table-data', this.public );
-
-	// If there are no players playing right now, try to initialize a game with the new player
+	
+};
+Table.prototype.startGame = function() {
 	if( !this.gameIsOn && this.playersSittingInCount > 1 ) {
 		// Initialize the game
 		this.initializeRound( false );
+		this.emitEvent('startGame', this.public );
+		return true;
 	}
-};
-
+	return false;
+}
 /**
  * Changes the data of the table when a player leaves
  * @param int seat

@@ -231,6 +231,15 @@ io.sockets.on('connection', function( socket ) {
 			callback( { 'success': true } );
 		}
 	});
+	socket.on('startGame', function(data,callback) {
+		
+		if (tables[data.tableId].startGame()) {
+			callback( { 'success': true } );
+		}
+		else {
+			callback( { 'success': false, 'error': 'Need at least 2 players'} );
+		}
+	})
 
 	/**
 	 * When a player posts a blind
