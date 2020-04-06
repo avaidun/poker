@@ -10,7 +10,7 @@
     "url": "https://github.com/atulmahamuni/poker"
   },
   "dependencies": {
-    "express": "~3.4.7",
+    "express": "~3.11.0",
     "jade": "~1.7.0",
     "less": "~2.0.0",
     "less-middleware": "~1.0.4",
