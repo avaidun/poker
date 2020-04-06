@@ -15,7 +15,8 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.mySeat = null;
 	$scope.betAmount = 0;
 	$rootScope.sittingOnTable = null;
-	$scope.gameStarted=false;
+	$scope.gameStarted = false;
+	$scope.playerCount = 0;
 	var showingNotification = false;
 
 	// Existing listeners should be removed
@@ -260,6 +261,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	// When the table data have changed
 	socket.on( 'table-data', function( data ) {
 		$scope.table = data;
+		$scope.playerCount = data.playersSeatedCount;
 		switch ( data.log.action ) {
 			case 'fold':
 				sounds.playFoldSound();

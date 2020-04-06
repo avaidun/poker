@@ -666,9 +666,12 @@ Table.prototype.playerLeft = function( seat ) {
 
 		this.seats[seat] = null;
 		this.emitEvent( 'table-data', this.public );
-
+		
+		if (!this.gameIsOn) {
+			return
+		}
 		// If a player left a heads-up match and there are people waiting to play, start a new round
-		if( this.playersInHandCount < 2 ) {
+		if( this.playersInHandCount < 2) {
 			this.endRound();
 		}
 		// Else if the player was the last to act in this phase, end the phase
