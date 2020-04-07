@@ -233,19 +233,6 @@ io.sockets.on('connection', function( socket ) {
 	});
 
 	/**
-	 * Start a game if there are more than 2 players
-	 * @param function callback
-	 */
-	socket.on('startGame', function(data,callback) {
-		if (tables[data.tableId].startGame()) {
-			callback( { 'success': true } );
-		}
-		else {
-			callback( { 'success': false, 'error': 'Need at least 2 players'} );
-		}
-	})
-
-	/**
 	 * When a player posts a blind
 	 * @param bool postedBlind (Shows if the user posted the blind or not)
 	 * @param function callback
