@@ -15,8 +15,6 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.mySeat = null;
 	$scope.betAmount = 0;
 	$rootScope.sittingOnTable = null;
-	$scope.gameStarted = false;
-	$scope.playerCount = 0;
 	var showingNotification = false;
 
 	// Existing listeners should be removed
@@ -243,25 +241,10 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 			}
 		});
 	}
-	
-	// Start game
-	$scope.startGame = function() {
-		socket.emit( 'startGame', {'tableId': $routeParams.tableId}, function( response ) {
-			if(response.success) {
-				// $scope.gameStarted = true;
-				$scope.$digest();
-			}
-			else if( response.error ) {
-				console.log(response.error)
-				$scope.$digest();
-			}
-		})
-	}
 
 	// When the table data have changed
 	socket.on( 'table-data', function( data ) {
 		$scope.table = data;
-		$scope.playerCount = data.playersSeatedCount;
 		switch ( data.log.action ) {
 			case 'fold':
 				sounds.playFoldSound();
@@ -351,10 +334,4 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 		$scope.$digest();
 	});
-
-	//When game has started
-	socket.on('startGame', function() {
-		$scope.gameStarted = true;
-		$scope.$digest();
-	})
 }]);
