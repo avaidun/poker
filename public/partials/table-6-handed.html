@@ -79,6 +79,9 @@
 			</div>
 		</div>
 		<div class="cell">
+			<button class="control-button" ng-click="startGame()" ng-disabled="playerCount < 2" ng-show="!gameStarted">Start Game</button>
+		</div>
+		<div class="cell">
 			<button class="control-button" ng-click="fold()" ng-show="showFoldButton()">Fold</button>
 			<button class="control-button" ng-click="postBlind(false)" ng-show="actionState === 'postSmallBlind' || actionState === 'postBigBlind'">Sit Out</button>
 			<button class="control-button" ng-click="leaveTable()" ng-show="showLeaveTableButton()">Leave Table</button>
