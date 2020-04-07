@@ -621,13 +621,20 @@ Table.prototype.playerSatIn = function( seat ) {
 	this.playersSittingInCount++;
 	
 	this.emitEvent( 'table-data', this.public );
+};
 
-	// If there are no players playing right now, try to initialize a game with the new player
+/**
+ * Start a game if there are more than 2 players
+ */
+Table.prototype.startGame = function() {
 	if( !this.gameIsOn && this.playersSittingInCount > 1 ) {
 		// Initialize the game
 		this.initializeRound( false );
+		this.emitEvent('startGame', this.public );
+		return true;
 	}
-};
+	return false;
+}
 
 /**
  * Changes the data of the table when a player leaves
@@ -663,9 +670,12 @@ Table.prototype.playerLeft = function( seat ) {
 
 		this.seats[seat] = null;
 		this.emitEvent( 'table-data', this.public );
-
+		
+		if (!this.gameIsOn) {
+			return
+		}
 		// If a player left a heads-up match and there are people waiting to play, start a new round
-		if( this.playersInHandCount < 2 ) {
+		if( this.playersInHandCount < 2) {
 			this.endRound();
 		}
 		// Else if the player was the last to act in this phase, end the phase
