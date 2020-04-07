@@ -16,7 +16,8 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.betAmount = 0;
 	$rootScope.sittingOnTable = null;
 	$scope.gameStarted = false;
-	$scope.playerCount = 0;
+    $scope.playerCount = 0;
+    $scope.defaultActionTimer = null;
 	var showingNotification = false;
 
 	// Existing listeners should be removed
@@ -29,7 +30,9 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}).success(function( data, status, headers, config ) {
 		$scope.table = data.table;
 		$scope.buyInAmount = data.table.maxBuyIn;
-		$scope.betAmount = data.table.bigBlind;
+        $scope.betAmount = data.table.bigBlind;
+        $scope.defaultActionTimeout = data.table.defaultActionTimeout;
+        $scope.minBet = data.table.minBet;
 	});
 
 	// Joining the socket room
@@ -134,11 +137,13 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	// Leaving the socket room
 	$scope.leaveRoom = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'leaveRoom' );
 	};
 
 	// A request to sit on a specific seat on the table
 	$scope.sitOnTheTable = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'sitOnTheTable', { 'seat': selectedSeat, 'tableId': $routeParams.tableId, 'chips': $scope.buyInAmount }, function( response ) {
 			if( response.success ){
 				$scope.buyInModalVisible = false;
@@ -159,6 +164,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	// Sit in the game
 	$scope.sitIn = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'sitIn', function( response ) {
 			if( response.success ) {
 				$rootScope.sittingIn = true;
@@ -169,6 +175,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	// Leave the table (not the room)
 	$scope.leaveTable = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'leaveTable', function( response ) {
 			if( response.success ) {
 				$rootScope.sittingOnTable = null;
@@ -183,6 +190,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	// Post a blind (or not)
 	$scope.postBlind = function( posted ) {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'postBlind', posted, function( response ) {
 			if( response.success && !posted ) {
 				$rootScope.sittingIn = false;
@@ -195,6 +203,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}
 
 	$scope.check = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'check', function( response ) {
 			if( response.success ) {
 				sounds.playCheckSound();
@@ -205,6 +214,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}
 
 	$scope.fold = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'fold', function( response ) {
 			if( response.success ) {
 				sounds.playFoldSound();
@@ -215,6 +225,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}
 
 	$scope.call = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'call', function( response ) {
 			if( response.success ) {
 				sounds.playCallSound();
@@ -225,6 +236,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}
 
 	$scope.bet = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'bet', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playBetSound();
@@ -235,6 +247,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}
 
 	$scope.raise = function() {
+        $scope.clearDefaultActionTimer();
 		socket.emit( 'raise', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playRaiseSound();
@@ -256,7 +269,40 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 				$scope.$digest();
 			}
 		})
-	}
+    }
+    
+    /*
+     * Default action timer - if a player does not respond for a whiile, take 
+     * the default action on their behalf
+     */
+
+    // set the defaul action timer
+    $scope.startDefaultActionTimer = function() {
+        $scope.clearDefaultActionTimer();
+        $scope.defaultActionTimer = setTimeout($scope.triggerDefaultAction, $scope.defaultActionTimeout);
+    }
+
+    // clear the default action timer
+    $scope.clearDefaultActionTimer = function() {
+        if ($scope.defaultActionTimer !== null) {
+            clearTimeout($scope.defaultActionTimer);
+        }
+        $scope.defaultActionTimer = null;
+    }
+
+    // handler for when the default action timer expires
+    $scope.triggerDefaultAction = function() {
+        $scope.clearDefaultActionTimer();
+
+        if ($scope.actionState == 'actBettedPot') {
+            $scope.fold();
+        } else if ($scope.actionState == 'actNotBettedPot') {
+            $scope.check();
+        } else if ($scope.actionState == 'actOthersAllIn') {
+            // TBD: not sure if we need to fold or check 
+        }
+    }
+
 
 	// When the table data have changed
 	socket.on( 'table-data', function( data ) {
@@ -333,7 +379,10 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		$scope.actionState = 'actBettedPot';
 
 		var proposedBet = +$scope.table.biggestBet + $scope.table.bigBlind;
-		$scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
+        $scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
+        
+        $scope.startDefaultActionTimer();
+
 		$scope.$digest();
 	});
 
@@ -341,13 +390,18 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	socket.on( 'actNotBettedPot', function() {
 		$scope.actionState = 'actNotBettedPot';
 
-		$scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < $scope.table.bigBlind ? $scope.table.seats[$scope.mySeat].chipsInPlay : $scope.table.bigBlind;
+        $scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < $scope.table.bigBlind ? $scope.table.seats[$scope.mySeat].chipsInPlay : $scope.table.bigBlind;
+        
+        $scope.startDefaultActionTimer();
+
 		$scope.$digest();
 	});
 
 	// When the user is asked to call an all in
 	socket.on( 'actOthersAllIn', function() {
-		$scope.actionState = 'actOthersAllIn';
+        $scope.actionState = 'actOthersAllIn';
+        
+        $scope.startDefaultActionTimer();
 
 		$scope.$digest();
 	});

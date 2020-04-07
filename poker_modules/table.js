@@ -14,7 +14,8 @@ var Deck = require('./deck'),
  * @param int 		minBuyIn (the minimum amount of chips that one can bring to the table)
  * @param bool 		privateTable (flag that shows whether the table will be shown in the lobby)
  */
-var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, maxBuyIn, minBuyIn, privateTable ) {
+var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, maxBuyIn, minBuyIn, privateTable, 
+    defaultActionTimeout, minBet ) {
 	// The table is not displayed in the lobby
 	this.privateTable = privateTable;
 	// The number of players who receive cards at the begining of each round
@@ -52,7 +53,11 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 		// The minimum allowed buy in
 		minBuyIn: minBuyIn,
 		// The maximum allowed buy in
-		maxBuyIn: maxBuyIn,
+        maxBuyIn: maxBuyIn,
+        // The timeout value for the defaul action when the player is afk
+        defaultActionTimeout: defaultActionTimeout,
+        // The minimum bet a player can raise by
+        minBet: minBet,
 		// The amount of chips that are in the pot
 		pot: this.pot.pots,
 		// The biggest bet of the table in the current phase

@@ -46,7 +46,9 @@ app.get('/lobby-data', function( req, res ) {
 			lobbyTables[tableId].seatsCount = tables[tableId].public.seatsCount;
 			lobbyTables[tableId].playersSeatedCount = tables[tableId].public.playersSeatedCount;
 			lobbyTables[tableId].bigBlind = tables[tableId].public.bigBlind;
-			lobbyTables[tableId].smallBlind = tables[tableId].public.smallBlind;
+            lobbyTables[tableId].smallBlind = tables[tableId].public.smallBlind;
+            lobbyTables[tableId].defaultActionTimeout = tables[tableId].public.defaultActionTimeout;
+            lobbyTables[tableId].minBet = tables[tableId].public.minBet;
 		}
 	}
 	res.send( lobbyTables );
@@ -421,7 +423,23 @@ function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-tables[0] = new Table( 0, 'Sample 10-handed Table', eventEmitter(0), 10, 2, 1, 200, 40, false );
-tables[1] = new Table( 1, 'Sample 6-handed Table', eventEmitter(1), 6, 4, 2, 400, 80, false );
-tables[2] = new Table( 2, 'Sample 2-handed Table', eventEmitter(2), 2, 8, 4, 800, 160, false );
-tables[3] = new Table( 3, 'Sample 6-handed Private Table', eventEmitter(3), 6, 20, 10, 2000, 400, true );
+// Read configuration from the config file and create table appropriately
+const fs = require('fs');
+console.log ("reading file")
+fs.readFile('./config/config.json', 'utf-8', (err, data) => {
+    console.log ("File read")
+    if (err) {
+      console.error("please update config.json")
+      return
+    }
+    console.log(data)
+    config = JSON.parse(data);
+    var tableCount = 0;
+    for (table of config.tables) {
+        tables[tableCount] = new Table( tableCount, table.name, eventEmitter(tableCount), 
+            table.numPlayers, 2 * table.smallBlind, table.smallBlind, 
+            table.maxBuyIn, table.minBuyIn, table.isPrivate,
+            table.defaultActionTimeout, table.minBet);
+        tableCount++;
+    }
+})

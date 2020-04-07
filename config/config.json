@@ -1,0 +1,24 @@
+{
+    "tables": [
+        {
+            "name": "Sample 10-handed Table",
+            "numPlayers": 10,
+            "smallBlind": 5,
+            "maxBuyIn": 500,
+            "minBuyIn": 50,
+            "isPrivate": false,
+            "defaultActionTimeout": 30000,
+            "minBet": 10
+        },
+        {
+            "name": "Sample 6-handed Table",
+            "numPlayers": 6,
+            "smallBlind": 5,
+            "maxBuyIn": 500,
+            "minBuyIn": 50,
+            "isPrivate": false,
+            "defaultActionTimeout": 5000,
+            "minBet": 5
+        }
+    ]
+}
