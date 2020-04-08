@@ -77,8 +77,7 @@ async function processLineByLine() {
                 break;
             case "playerSatOnTheTable":
                 players[rec.seat] = new Player( socket, rec.name, rec.chips );
-                table.playerSatOnTheTable( players[playercnt], rec.seat, rec.chips );
-                playercnt++;
+                table.playerSatOnTheTable(players[rec.seat], rec.seat, rec.chips );
                 break;
             case "playerLeft":
                 table.playerLeft(rec.seat);
