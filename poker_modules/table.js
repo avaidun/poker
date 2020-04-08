@@ -1,6 +1,8 @@
 var Deck = require('./deck'),
 	Pot = require('./pot');
 
+// DEVELOPMENT PURPOSES
+const fs = require('fs');
 /**
  * The table "class"
  * @param string	id (the table id)
@@ -83,6 +85,8 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 	for( var i=0 ; i<this.public.seatsCount ; i++ ) {
 		this.seats[i] = null;
 	}
+	this.ws = fs.createWriteStream("./" + name + ".rr");
+
 };
 
 // The function that emits the events of the table
@@ -96,6 +100,13 @@ Table.prototype.emitEvent = function( eventName, eventData ){
 	});
 };
 
+/**
+ * Records the moves for development purposes
+ * @param string rec
+ */
+Table.prototype.recordAndReplay = function(rec) {
+	this.ws.write(JSON.stringify(rec));
+}
 /**
  * Finds the next player of a certain status on the table
  * @param  number offset (the seat where search begins)
@@ -299,6 +310,12 @@ Table.prototype.initializePreflop = function() {
 
 	for( var i=0 ; i<this.playersInHandCount ; i++ ) {
 		this.seats[currentPlayer].cards = this.deck.deal( 2 );
+		var rec = {
+			action:"Cards",
+			name:this.seats[currentPlayer.public.name],
+			cards:this.seats[currentPlayer].cards
+		};
+		this.recordAndReplay(rec);
 		this.seats[currentPlayer].public.hasCards = true;
 		this.seats[currentPlayer].socket.emit( 'dealingCards', this.seats[currentPlayer].cards );
 		currentPlayer = this.findNextPlayer( currentPlayer );
@@ -441,6 +458,11 @@ Table.prototype.endPhase = function() {
  * @param int seat
  */
 Table.prototype.playerPostedSmallBlind = function() {
+	var rec = {
+		action:"playerPostedSmallBlind",
+		name:player.public.name,
+	};
+	this.recordAndReplay(rec);
 	var bet = this.seats[this.public.activeSeat].public.chipsInPlay >= this.public.smallBlind ? this.public.smallBlind : this.seats[this.public.activeSeat].public.chipsInPlay;
 	this.seats[this.public.activeSeat].bet( bet );
 	this.log({
@@ -459,6 +481,11 @@ Table.prototype.playerPostedSmallBlind = function() {
  * @param int seat
  */
 Table.prototype.playerPostedBigBlind = function() {
+	var rec = {
+		action:"playerPostedBigBlind",
+		name:player.public.name,
+	};
+	this.recordAndReplay(rec);
 	var bet = this.seats[this.public.activeSeat].public.chipsInPlay >= this.public.bigBlind ? this.public.bigBlind : this.seats[this.public.activeSeat].public.chipsInPlay;
 	this.seats[this.public.activeSeat].bet( bet );
 	this.log({
@@ -476,6 +503,11 @@ Table.prototype.playerPostedBigBlind = function() {
  * Checks if the round should continue after a player has folded
  */
 Table.prototype.playerFolded = function() {
+	var rec = {
+		action:"playerFolded",
+		name:player.public.name,
+	};
+	this.recordAndReplay(rec);
 	this.seats[this.public.activeSeat].fold();
 	this.log({
 		message: this.seats[this.public.activeSeat].public.name + ' folded',
@@ -505,6 +537,11 @@ Table.prototype.playerFolded = function() {
  * When a player checks
  */
 Table.prototype.playerChecked = function() {
+	var rec = {
+		action:"playerChecked",
+		name:player.public.name,
+	};
+	this.recordAndReplay(rec);
 	this.log({
 		message: this.seats[this.public.activeSeat].public.name + ' checked',
 		action: 'check',
@@ -525,6 +562,11 @@ Table.prototype.playerChecked = function() {
  * When a player calls
  */
 Table.prototype.playerCalled = function() {
+	var rec = {
+		action:"playerCalled",
+		name:player.public.name,
+	};
+	this.recordAndReplay(rec);
 	var calledAmount = this.public.biggestBet - this.seats[this.public.activeSeat].public.bet;
 	this.seats[this.public.activeSeat].bet( calledAmount );
 
@@ -548,6 +590,12 @@ Table.prototype.playerCalled = function() {
  * When a player bets
  */
 Table.prototype.playerBetted = function( amount ) {
+	var rec = {
+		action:"playerBetted",
+		name:player.public.name,
+		amount:amount
+	};
+	this.recordAndReplay(rec);
 	this.seats[this.public.activeSeat].bet( amount );
 	this.public.biggestBet = this.public.biggestBet < this.seats[this.public.activeSeat].public.bet ? this.seats[this.public.activeSeat].public.bet : this.public.biggestBet;
 
@@ -573,6 +621,12 @@ Table.prototype.playerBetted = function( amount ) {
  * When a player raises
  */
 Table.prototype.playerRaised = function( amount ) {
+	var rec = {
+		action:"playerRaised",
+		name:player.public.name,
+		amount:amount
+	};
+	this.recordAndReplay(rec);
 	this.seats[this.public.activeSeat].raise( amount );
 	var oldBiggestBet = this.public.biggestBet;
 	this.public.biggestBet = this.public.biggestBet < this.seats[this.public.activeSeat].public.bet ? this.seats[this.public.activeSeat].public.bet : this.public.biggestBet;
@@ -600,6 +654,13 @@ Table.prototype.playerRaised = function( amount ) {
  * @param int 		seat
  */
 Table.prototype.playerSatOnTheTable = function( player, seat, chips ) {
+	var rec = {
+		action:"playerSatOnTheTable",
+		name:player.public.name,
+		seat:seat,
+		chips:chips
+	};
+	this.recordAndReplay(rec);
 	this.seats[seat] = player;
 	this.public.seats[seat] = player.public;
 
@@ -649,6 +710,11 @@ Table.prototype.startGame = function() {
  * @param int seat
  */
 Table.prototype.playerLeft = function( seat ) {
+	var rec = {
+		action:"playerLeft",
+		name:player.public.name,
+	};
+	this.recordAndReplay(rec);
 	this.log({
 		message: this.seats[seat].public.name + ' left',
 		action: '',
@@ -699,6 +765,11 @@ Table.prototype.playerLeft = function( seat ) {
  * @param bool 	playerLeft		(flag that shows that the player actually left the table)
  */
 Table.prototype.playerSatOut = function( seat, playerLeft ) {
+	var rec = {
+		action:"playerSatOut",
+		name:player.public.name,
+	};
+	this.recordAndReplay(rec);
 	// Set the playerLeft parameter to false if it's not specified
 	if( typeof playerLeft == 'undefined' ) {
 		playerLeft = false;
