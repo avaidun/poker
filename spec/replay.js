@@ -23,7 +23,7 @@ var socket = {
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 2, 1, 200, 40, false );
 
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/Sample 10-handed Table-1.rr');
+    const fileStream = fs.createReadStream('./rrevents/Sample 10-handed Table-1.rr');
 
     const rl = readline.createInterface({
         input: fileStream,
