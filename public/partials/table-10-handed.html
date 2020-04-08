@@ -85,16 +85,22 @@
 				</form>
 			</div>
 		</div>
+		<!-- 
+			Moved "start game" button to preexsting cell div because creation of new div for "start game" button 
+			was pushing "raise" button off the control panel 
+		-->
+		<!-- <div class="cell">
+			<button class="control-button" ng-click="startGame()" ng-disabled="playerCount < 2" ng-show="!gameStarted">Start Game</button>
+		</div> -->
 		<div class="cell">
 			<button class="control-button" ng-click="startGame()" ng-disabled="playerCount < 2" ng-show="!gameStarted">Start Game</button>
-		</div>
-		<div class="cell">
 			<button class="control-button" ng-click="fold()" ng-show="showFoldButton()">Fold</button>
 			<!--Give no option to Sit Out-->
 			<!--<button class="control-button" ng-click="postBlind(false)" ng-show="actionState === 'postSmallBlind' || actionState === 'postBigBlind'">Sit Out</button>-->
-			<button class="control-button" ng-click="leaveTable()" ng-show="showLeaveTableButton()">Leave Table</button>
+			<!-- <button class="control-button" ng-click="leaveTable()" ng-show="showLeaveTableButton()">Leave Table</button> -->
 		</div>
 		<div class="cell">
+			<button class="control-button" ng-click="leaveTable()" ng-show="showLeaveTableButton()">Leave Table</button>
 			<button class="control-button" ng-click="sitIn()" ng-show="$root.sittingOnTable !== null && !$root.sittingIn">Sit In</button>
 			<button class="control-button" ng-click="postBlind(true)" ng-show="actionState === 'postSmallBlind'">Small Blind ({{table.smallBlind}})</button>
 			<button class="control-button" ng-click="postBlind(true)" ng-show="actionState === 'postBigBlind'">Big Blind ({{table.bigBlind}})</button>
@@ -105,11 +111,11 @@
 			<button class="control-button" ng-click="bet()" ng-show="showBetButton()">Bet {{betAmount}}</button>
 			<button class="control-button" ng-click="raise()" ng-show="showRaiseButton()">Raise to {{betAmount}}</button>
 		</div>
-		<div class="double-cell">
-			<div class="cell-content">
-				<input type="range" ng-show="showBetRange()" min="{{minBetAmount()}}" max="{{maxBetAmount()}}" ng-model="betAmount">
-				<input type="number" id="bet-input" ng-show="showBetInput()" min="{{minBetAmount()}}" max="{{maxBetAmount()}}" ng-model="betAmount" value="{{betAmount}}">
+		<div class="slider-div" ng-show="showBetRange()">
+			<div class="raise-label">
+				Raise
 			</div>
+			<input id="raise-slider" class="raise-slider" type="range" min="{{minBetAmount()}}" max="{{maxBetAmount()}}" ng-model="betAmount" step="{{table.bigBlind}}" list="tickmarks">
 		</div>
 	</div>
 	<div id="audio">

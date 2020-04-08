@@ -358,12 +358,16 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	// When the player is asked to place the small blind
 	socket.on( 'postSmallBlind', function( data ) {
 		$scope.actionState = 'postSmallBlind';
+		 // automatically post small blind without displaying button
+		$scope.postBlind (true);
 		$scope.$digest();
 	});
 
 	// When the player is asked to place the big blind
 	socket.on( 'postBigBlind', function( data ) {
 		$scope.actionState = 'postBigBlind';
+		// automatically post big blind without displaying button
+		$scope.postBlind (true);
 		$scope.$digest();
 	});
 
