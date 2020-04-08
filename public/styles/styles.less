@@ -150,6 +150,43 @@ div.row {
 		border-radius: 8px;
 		z-index: 1;
 	}
+	.slider-div {
+		position: absolute;
+		top: 75%;
+		left: 27%;
+		width: 73%;
+		height: 30px;
+		.raise-label {
+			display: inline-block;
+			color: #30283E;
+			font-size: 20px;
+			margin-top: 0px;
+		}
+		.raise-slider {
+			display: inline-block;
+			border-radius: 10px;
+			width: 80%;
+			height: 20px;
+			background: #30283E;
+			&::-webkit-slider-thumb {
+				-webkit-appearance: none;
+				appearance: none;
+				width: 25px;
+				height: 25px;
+				border-radius: 12px;
+				background: #9880e9;
+				cursor: pointer;
+			}
+			&::-moz-range-thumb {
+				width: 25px;
+				height: 25px;
+				border-radius: 12px;
+				background: #9880e9;
+				cursor: pointer;
+			}
+
+		}
+	}
 }
 
 div.cell {
@@ -159,7 +196,9 @@ div.cell {
 	position: relative;
 
 	button {
-		margin: 22.5% 15%;
+		margin: 10% 15%;
+		height: 100px;
+		width: 200px;
 	}
 }
 
@@ -171,10 +210,10 @@ div.double-cell {
 
 div.controls {
 	div.cell {
-		width: 15%;
+		width: 22%;
 	}
 	div.double-cell {
-		width: 30%;
+		width: 100%;
 		.cell-content {
 			padding: 8%;
 		}
@@ -185,11 +224,6 @@ div.controls {
 	}
 }
 
-input[type="range"] {
-	width: 90%;
-	margin-top: 8%;
-	padding: 0;
-}
 
 .sitIn {
 	padding: 12% 34%;
