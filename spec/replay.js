@@ -20,18 +20,7 @@ var socket = {
     }
 };
 
-
-
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 2, 1, 200, 40, false );
-
-// i = 10;
-//
-// var x = {
-//     action: eventEmitter(0),
-//     action2: eventEmitter(i)
-// }
-//
-// var str = JSON.stringify(x);
 
 async function processLineByLine() {
     const fileStream = fs.createReadStream('../rrevents/Sample 10-handed Table-1.rr');
@@ -95,74 +84,6 @@ async function processLineByLine() {
 
 processLineByLine();
 
-for( var i=0 ; i<3 ; i++ ) {
-    players[i] = new Player( socket, 'Player_'+i, 1000 );
-    players[i].socket = socket;
-
-}
-
-initialChips = 200;
-table.playerSatOnTheTable( players[0], 2, initialChips );
-table.playerSatOnTheTable( players[1], 6, initialChips );
-table.playerSatOnTheTable( players[2], 4, initialChips );
-
-table.deck.cards[0] = 'Ah';
-table.deck.cards[1] = 'Kh';
-
-table.deck.cards[2] = 'Ad';
-table.deck.cards[3] = 'Kd';
-
-table.deck.cards[4] = 'As';
-table.deck.cards[5] = 'Ks';
-
-table.deck.cards[6] = '3c';
-table.deck.cards[7] = '5c';
-table.deck.cards[8] = '8c';
-table.deck.cards[9] = 'Js';
-table.deck.cards[10] = 'Qd';
-
-table.startGame();
-table.playerPostedSmallBlind();
-table.playerPostedBigBlind();
-table.playerCalled();
-table.playerChecked();
-table.playerChecked();
-table.playerChecked();
-table.playerChecked();
-table.playerChecked();
-table.playerChecked();
-table.playerChecked();
-
-// jasmine.Clock.tick(2000);
-
-table.deck.cards[0] = 'Ah';
-table.deck.cards[1] = 'Kh';
-
-table.deck.cards[2] = 'Ad';
-table.deck.cards[3] = 'Kd';
-
-table.deck.cards[4] = 'As';
-table.deck.cards[5] = 'Ks';
-
-table.deck.cards[6] = '3c';
-table.deck.cards[7] = '5c';
-table.deck.cards[8] = '8c';
-table.deck.cards[9] = 'Js';
-table.deck.cards[10] = 'Qd';
-
-table.playerPostedSmallBlind();
-table.playerPostedBigBlind();
-table.playerCalled();
-table.playerCalled();
-table.playerChecked();
-table.playerBetted( 33 );
-table.playerCalled();
-table.playerCalled();
-table.playerChecked();
-table.playerChecked();
-table.playerChecked();
-table.playerChecked();
-table.playerChecked();
 
 
 
