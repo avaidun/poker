@@ -460,7 +460,7 @@ Table.prototype.endPhase = function() {
 Table.prototype.playerPostedSmallBlind = function() {
 	var rec = {
 		action:"playerPostedSmallBlind",
-		name:player.public.name,
+		name:this.seats[this.public.activeSeat].public.name,
 	};
 	this.recordAndReplay(rec);
 	var bet = this.seats[this.public.activeSeat].public.chipsInPlay >= this.public.smallBlind ? this.public.smallBlind : this.seats[this.public.activeSeat].public.chipsInPlay;
