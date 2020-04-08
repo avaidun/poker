@@ -251,6 +251,9 @@ Table.prototype.initializeRound = function( changeDealer ) {
 			this.public.dealerSeat = this.findNextPlayer( this.public.dealerSeat );
 		}
 
+		// clear biggeet bet
+		this.public.biggestBet = 0;
+
 		this.initializeSmallBlind();
 	}
 };
