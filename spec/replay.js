@@ -23,7 +23,7 @@ var socket = {
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 2, 1, 200, 40, false );
 
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/Table2020-04-08T23-01.rr');
+    const fileStream = fs.createReadStream('../rrevents/FullGameAARR.rr');
 
     const rl = readline.createInterface({
         input: fileStream,
@@ -32,14 +32,16 @@ async function processLineByLine() {
     // Note: we use the crlfDelay option to recognize all instances of CR LF
     // ('\r\n') in input.txt as a single line break.
 
+    var line = 1;
     for await (const str of rl) {
         // Each line in input.txt will be successively available here as `line`.
         rec = JSON.parse(str);
+        console.log(`Line from file: ${str}` + " dealer " + table.public.dealerSeat + " Active " + table.public.activeSeat);
         switch (rec.action) {
             case "startGame": // set the dealer seat and deck else it is randomized and will not be a true replay.
                 table.public.dealerSeat = rec.dealerSeat;
-                table.deck.cards = rec.cards;
                 table.initializeRound(false);
+                table.deck.cards = rec.cards;
                 break;
             case "playerPostedSmallBlind":
                 table.playerPostedSmallBlind();
@@ -56,9 +58,9 @@ async function processLineByLine() {
             case "playerCalled":
                 table.playerCalled();
                 break;
-            case "playerBetted":
-                table.playerBetted();
-                break;
+            // case "playerBetted":
+            //     table.playerBetted();
+            //     break;
             case "playerBetted":
                 table.playerBetted(rec.amount);
                 break;
@@ -73,13 +75,14 @@ async function processLineByLine() {
                 table.playerLeft(rec.seat);
                 players[rec.seat] = null;
                 break;
-            case "playerSatOut":
-                table.playerSatOut(rec.seat, rec.playerLeft);
-                break;
+            // case "playerSatOut":
+            //     table.playerSatOut(rec.seat, rec.playerLeft);
+            //     break;
 
                 default:
                     console.log(`Line from file: ${str}`);
         }
+        line++;
     }
 }
 

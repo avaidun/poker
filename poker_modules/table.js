@@ -242,7 +242,7 @@ Table.prototype.initializeRound = function( changeDealer ) {
 			// If a player is sitting on the current seat
 			if( this.seats[i] !== null && this.seats[i].public.sittingIn ) {
 				if( !this.seats[i].public.chipsInPlay ) {
-					this.seats[seat].sitOut();
+					this.seats[i].sitOut();
 					this.playersSittingInCount--;
 				} else {
 					this.playersInHandCount++;
@@ -785,12 +785,12 @@ Table.prototype.playerLeft = function( seat ) {
  */
 Table.prototype.playerSatOut = function( seat, playerLeft ) {
 
-	this.recordAndReplay({
-		action:"playerSatOut",
-		seat:seat,
-		playerLeft: playerLeft,
-		name:this.seats[seat].public.name,
-	});
+	// this.recordAndReplay({
+	// 	action:"playerSatOut",
+	// 	seat:seat,
+	// 	playerLeft: playerLeft,
+	// 	name:this.seats[seat].public.name,
+	// });
 
 	// Set the playerLeft parameter to false if it's not specified
 	if( typeof playerLeft == 'undefined' ) {
