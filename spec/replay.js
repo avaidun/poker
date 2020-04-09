@@ -58,9 +58,6 @@ async function processLineByLine() {
             case "playerCalled":
                 table.playerCalled();
                 break;
-            // case "playerBetted":
-            //     table.playerBetted();
-            //     break;
             case "playerBetted":
                 table.playerBetted(rec.amount);
                 break;
@@ -75,10 +72,6 @@ async function processLineByLine() {
                 table.playerLeft(rec.seat);
                 players[rec.seat] = null;
                 break;
-            // case "playerSatOut":
-            //     table.playerSatOut(rec.seat, rec.playerLeft);
-            //     break;
-
                 default:
                     console.log(`Line from file: ${str}`);
         }
