@@ -5,9 +5,9 @@ app.controller('LobbyController', ['$scope', '$rootScope', '$http', function( $s
 	$http({
 		url: '/lobby-data',
 		method: 'GET'
-	}).success(function ( data, status, headers, config ) {
-		for( tableId in data ) {
-			$scope.lobbyTables[tableId] = data[tableId];
+	}).then(function ( data, status, headers, config ) {
+		for( tableId in data.data ) {
+			$scope.lobbyTables[tableId] = data.data[tableId];
 		}
 	});
 
