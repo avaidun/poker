@@ -7,7 +7,7 @@
             "maxBuyIn": 500,
             "minBuyIn": 50,
             "isPrivate": false,
-            "defaultActionTimeout": 30000,
+            "defaultActionTimeout": 3000000,
             "minBet": 10
         },
         {
@@ -17,7 +17,7 @@
             "maxBuyIn": 500,
             "minBuyIn": 50,
             "isPrivate": false,
-            "defaultActionTimeout": 5000,
+            "defaultActionTimeout": 500000,
             "minBet": 5
         }
     ]

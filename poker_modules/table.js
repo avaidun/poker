@@ -89,10 +89,11 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 		this.seats[i] = null;
 	}
 
+	if (name === "REPLAY") this.recordReplayEnabled = false;
 	if (this.recordReplayEnabled) {
-		this.ws = fs.createWriteStream("../rrevents/" + name + ".rr");
+		fn = "./rrevents/Table" + (new Date().toISOString().replace(/:/, '-').split(/:/)[0]) + "\.rr";
+		this.ws = fs.createWriteStream(fn);
 	}
-
 };
 
 // The function that emits the events of the table
@@ -467,7 +468,7 @@ Table.prototype.endPhase = function() {
  */
 Table.prototype.playerPostedSmallBlind = function() {
 
-	this.recordAndReplay({
+	this.recordReplayEnabled && this.recordAndReplay({
 		action:"playerPostedSmallBlind",
 		name:this.seats[this.public.activeSeat].public.name,
 	});
@@ -516,7 +517,7 @@ Table.prototype.playerFolded = function() {
 
 	this.recordAndReplay({
 		action:"playerFolded",
-		name:player.public.name,
+		name:this.seats[this.public.activeSeat].public.name
 	});
 
 	this.seats[this.public.activeSeat].fold();
@@ -910,7 +911,6 @@ Table.prototype.stopGame = function() {
 	this.pot.reset();
 	this.public.activeSeat = null;
 	this.public.board = ['', '', '', '', ''];
-	this.public.activeSeat = null;
 	this.lastPlayerToAct = null;
 	this.removeAllCardsFromPlay();
 	this.gameIsOn = false;
