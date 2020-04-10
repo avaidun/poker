@@ -23,7 +23,7 @@ var app = angular.module( 'app', ['ngRoute'] ).config( function( $routeProvider,
 
 	$routeProvider.otherwise( { redirectTo: '/' } );
 
-	$locationProvider.html5Mode(true).hashPrefix('!');
+	$locationProvider.html5Mode({enabled:true,requireBase:false}).hashPrefix('!');
 });
 
 app.run( function( $rootScope ) {
