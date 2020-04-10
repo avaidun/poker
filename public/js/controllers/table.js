@@ -64,6 +64,10 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		return $rootScope.sittingOnTable !== null && ( !$rootScope.sittingIn || $scope.actionState === "waiting" );
 	}
 
+	$scope.showStartGameButton = function() {
+		return !$scope.gameStarted;
+	}	
+
 	$scope.showSitOutButton = function() {
 		return $rootScope.sittingOnTable !== null && ( !$rootScope.sittingIn || $scope.actionState === "waiting" ); 
 	}	
