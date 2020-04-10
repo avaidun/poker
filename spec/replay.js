@@ -20,7 +20,7 @@ var socket = {
     }
 };
 
-table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 2, 1, 200, 40, false );
+table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 10, 5, 500, 50, false, 3000000, 10);
 
 async function processLineByLine() {
     const fileStream = fs.createReadStream('../rrevents/FullGameAARR.rr');

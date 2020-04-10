@@ -38,6 +38,10 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	// Joining the socket room
 	socket.emit( 'enterRoom', $routeParams.tableId );
 
+	$scope.isURLBlank = function() {
+		return ($scope.url === "");
+	}
+
 	$scope.minBetAmount = function() {
 		if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] === null ) return 0;
 		// If the pot was raised

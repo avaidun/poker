@@ -17,7 +17,7 @@ const fs = require('fs');
  * @param bool 		privateTable (flag that shows whether the table will be shown in the lobby)
  */
 var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, maxBuyIn, minBuyIn, privateTable, 
-    defaultActionTimeout, minBet ) {
+    defaultActionTimeout, minBet, recordReplayEnabled ) {
 	// The table is not displayed in the lobby
 	this.privateTable = privateTable;
 	// The number of players who receive cards at the begining of each round
@@ -38,7 +38,7 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 	this.eventEmitter = eventEmitter;
 	// The pot with its methods
 	this.pot = new Pot;
-	this.recordReplayEnabled = true;
+	this.recordReplayEnabled = recordReplayEnabled;
 	// All the public table data
 	this.public = {
 		// The table id
@@ -93,6 +93,10 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 	if (this.recordReplayEnabled) {
 		fn = "./rrevents/Table" + (new Date().toISOString().replace(/:/, '-').split(/:/)[0]) + "\.rr";
 		this.ws = fs.createWriteStream(fn);
+		this.ws.on('error', function(e) {
+			console.error(e);
+			this.recordReplayEnabled = false;
+		});
 	}
 };
 

@@ -8,7 +8,8 @@
             "minBuyIn": 50,
             "isPrivate": false,
             "defaultActionTimeout": 3000000,
-            "minBet": 10
+            "minBet": 10,
+            "recordReplayEnabled": true
         },
         {
             "name": "Sample 6-handed Table",
@@ -18,7 +19,8 @@
             "minBuyIn": 50,
             "isPrivate": false,
             "defaultActionTimeout": 500000,
-            "minBet": 5
+            "minBet": 5,
+            "recordReplayEnabled": true
         }
     ]
 }
