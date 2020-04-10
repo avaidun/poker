@@ -103,52 +103,9 @@ Table.prototype.emitEvent = function( eventName, eventData ){
  * @return number|null
  */
 Table.prototype.findNextPlayer = function( offset, status ) {
-	offset = typeof offset !== 'undefined' ? offset : this.public.activeSeat;
-	status = typeof status !== 'undefined' ? status : 'inHand';
-
-	if( status instanceof Array ) {
-		var statusLength = status.length;
-		if( offset !== this.public.seatsCount ) {
-			for( var i=offset+1 ; i<this.public.seatsCount ; i++ ) {
-				if( this.seats[i] !== null ) {
-					var validStatus = true;
-					for( var j=0 ; j<statusLength ; j++ ) {
-						validStatus &= !!this.seats[i].public[status[j]];
-					}
-					if( validStatus ) {
-						return i;
-					}
-				}
-			}
-		}
-		for( var i=0 ; i<=offset ; i++ ) {
-			if( this.seats[i] !== null ) {
-				var validStatus = true;
-				for( var j=0 ; j<statusLength ; j++ ) {
-					validStatus &= !!this.seats[i].public[status[j]];
-				}
-				if( validStatus ) {
-					return i;
-				}
-			}
-		}
-	} else {
-		if( offset !== this.public.seatsCount ) {
-			for( var i=offset+1 ; i<this.public.seatsCount ; i++ ) {
-				if( this.seats[i] !== null && this.seats[i].public[status] ) {
-					return i;
-				}
-			}
-		}
-		for( var i=0 ; i<=offset ; i++ ) {
-			if( this.seats[i] !== null && this.seats[i].public[status] ) {
-				return i;
-			}
-		}
-	}
-
-	return null;
+    return this.findPlayer(1, offset, status);
 };
+
 
 /**
  * Finds the previous player of a certain status on the table
@@ -157,52 +114,41 @@ Table.prototype.findNextPlayer = function( offset, status ) {
  * @return number|null
  */
 Table.prototype.findPreviousPlayer = function( offset, status ) {
-	offset = typeof offset !== 'undefined' ? offset : this.public.activeSeat;
-	status = typeof status !== 'undefined' ? status : 'inHand';
-
-	if( status instanceof Array ) {
-		var statusLength = status.length;
-		if( offset !== 0 ) {
-			for( var i=offset-1 ; i>=0 ; i-- ) {
-				if( this.seats[i] !== null ) {
-					var validStatus = true;
-					for( var j=0 ; j<statusLength ; j++ ) {
-						validStatus &= !!this.seats[i].public[status[j]];
-					}
-					if( validStatus ) {
-						return i;
-					}
-				}
-			}
-		}
-		for( var i=this.public.seatsCount-1 ; i>=offset ; i-- ) {
-			if( this.seats[i] !== null ) {
-				var validStatus = true;
-				for( var j=0 ; j<statusLength ; j++ ) {
-					validStatus &= !!this.seats[i].public[status[j]];
-				}
-				if( validStatus ) {
-					return i;
-				}
-			}
-		}
-	} else {
-		if( offset !== 0 ) {
-			for( var i=offset-1 ; i>=0 ; i-- ) {
-				if( this.seats[i] !== null && this.seats[i].public[status] ) {
-					return i;
-				}
-			}
-		}
-		for( var i=this.public.seatsCount-1 ; i>=offset ; i-- ) {
-			if( this.seats[i] !== null && this.seats[i].public[status] ) {
-				return i;
-			}
-		}
-	}
-
-	return null;
+    return this.findPlayer(-1, offset, status);
 };
+
+/**
+ * Worker function for findNextPlayer and findPreviousPlayer
+ * @param  number direction (1: next player, -1: previous player)
+ * @param  number offset (the seat where search begins)
+ * @param  string|array status (the status of the player who should be found)
+ * @return number|null
+ */
+Table.prototype.findPlayer = function(direction, offset, status) {
+	offset = typeof offset !== 'undefined' ? offset : this.public.activeSeat;
+    status = typeof status !== 'undefined' ? status : {
+        'inHand': (x) => (x == true),
+        'chipsInPlay': (x) => (x > 0)
+    };
+    
+    for (var i = 0; i < this.public.seatsCount; i++) {
+        var index = (offset + direction * (i + 1) + this.public.seatsCount) % this.public.seatsCount;
+        if (this.seats[index] === null) {
+            continue;
+        }
+
+        var validStatus = true;
+        for (const key in status) {
+            const func = status[key];
+            validStatus &= (this.seats[index].public.hasOwnProperty(key) && func(this.seats[index].public[key]));
+        }
+        if (validStatus) {
+            return(index);
+        }
+    }
+    return (null)
+};
+
 
 /**
  * Method that starts a new game
@@ -347,7 +293,8 @@ Table.prototype.initializeNextPhase = function() {
  * Making the next player the active one
  */
 Table.prototype.actionToNextPlayer = function() {
-	this.public.activeSeat = this.findNextPlayer( this.public.activeSeat, ['chipsInPlay', 'inHand'] );
+    this.public.activeSeat = this.findNextPlayer( this.public.activeSeat, 
+        {'chipsInPlay': (x) => x > 0, 'inHand': (x) => (x)});
 
 	switch( this.public.phase ) {
 		case 'smallBlind':
@@ -388,7 +335,7 @@ Table.prototype.actionToNextPlayer = function() {
 Table.prototype.showdown = function() {
 	this.pot.addTableBets( this.seats );
 
-	var currentPlayer = this.findNextPlayer( this.public.dealerSeat );
+	var currentPlayer = this.findNextPlayer( this.public.dealerSeat, {'inHand': (x) => x} );
 	var bestHandRating = 0;
 
 	for( var i=0 ; i<this.playersInHandCount ; i++ ) {
@@ -398,7 +345,7 @@ Table.prototype.showdown = function() {
 		if( this.seats[currentPlayer].evaluatedHand.rating > bestHandRating ) {
 			this.seats[currentPlayer].public.cards = this.seats[currentPlayer].cards;
 		}
-		currentPlayer = this.findNextPlayer( currentPlayer );
+		currentPlayer = this.findNextPlayer( currentPlayer, {'inHand': (x) => x} );
 	}
 	
 	var messages = this.pot.destributeToWinners( this.seats, currentPlayer );
@@ -460,7 +407,7 @@ Table.prototype.playerPostedSmallBlind = function() {
  */
 Table.prototype.playerPostedBigBlind = function() {
 	var bet = this.seats[this.public.activeSeat].public.chipsInPlay >= this.public.bigBlind ? this.public.bigBlind : this.seats[this.public.activeSeat].public.chipsInPlay;
-	this.seats[this.public.activeSeat].bet( bet );
+    this.seats[this.public.activeSeat].bet( bet );
 	this.log({
 		message: this.seats[this.public.activeSeat].public.name + ' posted the big blind',
 		action: 'bet',
@@ -573,7 +520,7 @@ Table.prototype.playerBetted = function( amount ) {
  * When a player raises
  */
 Table.prototype.playerRaised = function( amount ) {
-	this.seats[this.public.activeSeat].raise( amount );
+    this.seats[this.public.activeSeat].raise( amount );
 	var oldBiggestBet = this.public.biggestBet;
 	this.public.biggestBet = this.public.biggestBet < this.seats[this.public.activeSeat].public.bet ? this.seats[this.public.activeSeat].public.bet : this.public.biggestBet;
 	var raiseAmount = this.public.biggestBet - oldBiggestBet;
@@ -790,7 +737,7 @@ Table.prototype.endRound = function() {
 	// If there were any bets, they are added to the pot
 	this.pot.addTableBets( this.seats );
 	if( !this.pot.isEmpty() ) {
-		var winnersSeat = this.findNextPlayer( 0 );
+		var winnersSeat = this.findNextPlayer( 0, {'inHand': (x) => x} );
 		this.pot.giveToWinner( this.seats[winnersSeat] );
 	}
 

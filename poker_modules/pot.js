@@ -29,68 +29,32 @@ Pot.prototype.reset = function() {
  * @param array players (the array of the tables as it exists in the table)
  */
 Pot.prototype.addTableBets = function( players ) {
-  // Getting the current pot (the one in which new bets should be added)
-  var currentPot = this.pots.length-1;
+    // Getting the current pot (the one in which new bets should be added)
+    var remaining = players.reduce((total, player) => total + (player ? player.public.bet : 0), 0);
+    do {
+        var currentPot = this.pots.length - 1;
+        var sidePotRequired = false;
+        const min = players.reduce(
+            (min, player) => player && player.public.bet > 0 && player.public.bet < min ? player.public.bet : min, 
+            remaining);
 
-  // The smallest bet of the round
-  var smallestBet = 0;
-  // Flag that shows if all the bets have the same amount
-  var allBetsAreEqual = true;
-
-  // Trying to find the smallest bet of the player
-  // and if all the bets are equal
-  for( var i in players ) {
-    if( players[i] && players[i].public.bet ) {
-      if( !smallestBet ) {
-        smallestBet = players[i].public.bet;
-      }
-      else if( players[i].public.bet != smallestBet ) {
-        allBetsAreEqual = false;
-        
-        if( players[i].public.bet < smallestBet ) {
-          smallestBet = players[i].public.bet;
+        for (const player of players) {
+            if (player && player.public.bet > 0) {
+                this.pots[currentPot].amount += min;
+                player.public.bet -= min;
+                sidePotRequired = player.public.chipsInPlay === 0 ? true : sidePotRequired
+                remaining -= min;
+                if (this.pots[currentPot].contributors.indexOf(player.seat) < 0 ) {
+                    this.pots[currentPot].contributors.push(player.seat);
+                }
+            }
         }
-      }
-    }
-  }
 
-  // If all the bets are equal, then remove the bets of the players and add
-  // them to the pot as they are
-  if( allBetsAreEqual ) {
-    for( var i in players ) {
-      if( players[i] && players[i].public.bet ) {
-        this.pots[currentPot].amount += players[i].public.bet;
-        players[i].public.bet = 0;
-        if( this.pots[currentPot].contributors.indexOf( players[i].seat ) < 0 ) {
-          this.pots[currentPot].contributors.push( players[i].seat );
+        // Creating a sidepot if required
+        if (sidePotRequired) {
+            this.pots.push({amount: 0, contributors: []});
         }
-      }
-    }
-  } else {
-    // If not all the bets are equal, remove from each player's bet the smallest bet
-    // amount of the table, add these bets to the pot and then create a new empty pot
-    // and recursively add the bets that remained, to the new pot
-    for( var i in players ) {
-      if( players[i] && players[i].public.bet ) {
-        this.pots[currentPot].amount += smallestBet;
-        players[i].public.bet = players[i].public.bet - smallestBet;
-        if( this.pots[currentPot].contributors.indexOf( players[i].seat ) < 0 ) {
-          this.pots[currentPot].contributors.push( players[i].seat );
-        }
-      }
-    }
-
-    // Creating a new pot
-    this.pots.push(
-      { 
-        amount: 0,
-        contributors: []
-      }
-    );
-
-    // Recursion
-    this.addTableBets( players );
-  }
+    } while (remaining > 0);
 }
 
 /**
