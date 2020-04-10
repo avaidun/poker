@@ -64,6 +64,10 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		return $rootScope.sittingOnTable !== null && ( !$rootScope.sittingIn || $scope.actionState === "waiting" );
 	}
 
+	$scope.showSitOutButton = function() {
+		return $rootScope.sittingOnTable !== null && ( !$rootScope.sittingIn || $scope.actionState === "waiting" ); 
+	}	
+
 	$scope.showPostSmallBlindButton = function() {
 		return $scope.actionState === "actNotBettedPot" || $scope.actionState === "actBettedPot";
 	}
@@ -177,6 +181,21 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.leaveTable = function() {
         $scope.clearDefaultActionTimer();
 		socket.emit( 'leaveTable', function( response ) {
+			if( response.success ) {
+				$rootScope.sittingOnTable = null;
+				$rootScope.totalChips = response.totalChips;
+				$rootScope.sittingIn = false;
+				$scope.actionState = '';
+				$rootScope.$digest();
+				$scope.$digest();
+			}
+		});
+	}
+
+	// Leave the table (not the room)
+	$scope.sitOut = function() {
+        $scope.clearDefaultActionTimer();
+		socket.emit( 'sitOut', function( response ) {
 			if( response.success ) {
 				$rootScope.sittingOnTable = null;
 				$rootScope.totalChips = response.totalChips;

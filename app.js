@@ -142,6 +142,24 @@ io.sockets.on('connection', function( socket ) {
 	});
 
 	/**
+	 * When a player sits out the table
+	 * @param function callback
+	 */
+	socket.on('sitOut', function( callback ) {
+		// If the player was sitting on a table
+		if( players[socket.id].sittingOnTable !== false && tables[players[socket.id].sittingOnTable] !== false ) {
+			// The seat on which the player was sitting
+			var seat = players[socket.id].seat;
+			// The table on which the player was sitting
+			var tableId = players[socket.id].sittingOnTable;
+			// Remove the player from the seat
+			tables[tableId].playerSatOut( seat );
+			// Send the number of total chips back to the user
+			callback( { 'success': true, 'totalChips': players[socket.id].chips } );
+		}
+	});
+
+	/**
 	 * When a new player enters the application
 	 * @param string newScreenName
 	 * @param function callback
