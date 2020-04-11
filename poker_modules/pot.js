@@ -73,57 +73,51 @@ Pot.prototype.addPlayersBets = function( player ) {
   }
 }
 
-Pot.prototype.destributeToWinners = function( players, firstPlayerToAct ) {
-  var potsCount = this.pots.length;
-  var messages = [];
 
-  // For each one of the pots, starting from the last one
-  for( var i=potsCount-1 ; i>=0 ; i-- ) {
-    var winners = [];
-    var bestRating = 0;
-    var playersCount = players.length;
-    for( var j=0 ; j<playersCount ; j++ ) {
-      if( players[j] && players[j].public.inHand && this.pots[i].contributors.indexOf( players[j].seat ) >= 0 ) {
-        if( players[j].evaluatedHand.rating > bestRating ) {
-          bestRating = players[j].evaluatedHand.rating;
-          winners = [ players[j].seat ];
-        }
-        else if( players[j].evaluatedHand.rating === bestRating ) {
-          winners.push( players[j].seat );
-        }
+Pot.prototype.distributeToWinners = function (players, firstPlayerToAct) {
+    var messages = [];
+  
+    // For each one of the pots, starting from the first one
+    for (const pot of this.pots) {
+      var winners = [];
+      var bestRating = 0;
+
+      for (const player of players) {
+        if (player && player.public.inHand && pot.contributors.includes(player.seat)) {
+            if (player.evaluatedHand.rating > bestRating) {
+              bestRating = player.evaluatedHand.rating;
+              winners = [player];
+            }
+            else if ( player.evaluatedHand.rating === bestRating ) {
+              winners.push(player);
+            }
+          }
       }
-    }
-    if( winners.length === 1 ) {
-      players[winners[0]].public.chipsInPlay += this.pots[i].amount;
-      var htmlHand = '[' + players[winners[0]].evaluatedHand.cards.join(', ') + ']';
-      htmlHand = htmlHand.replace(/s/g, '&#9824;').replace(/c/g, '&#9827;').replace(/h/g, '&#9829;').replace(/d/g, '&#9830;');
-      messages.push( players[winners[0]].public.name + ' wins the pot (' + this.pots[i].amount + ') with ' + players[winners[0]].evaluatedHand.name + ' ' + htmlHand );
-    } else {
-      var winnersCount = winners.length;
 
-      var winnings = ~~( this.pots[i].amount / winnersCount );
-      var oddChip = winnings * winnersCount !== this.pots[i].amount;
-
-      for( var j in winners ) {
-        var playersWinnings = 0;
-        if( oddChip && players[winners[j]].seat === firstPlayerToAct ) {
-          playersWinnings = winnings + 1;
-        } else {
-          playersWinnings = winnings;
-        }
-
-        players[winners[j]].public.chipsInPlay += playersWinnings;
-        var htmlHand = '[' + players[winners[j]].evaluatedHand.cards.join(', ') + ']';
+      if( winners.length === 1 ) {
+        winners[0].public.chipsInPlay += pot.amount;
+        var htmlHand = '[' + winners[0].evaluatedHand.cards.join(', ') + ']';
         htmlHand = htmlHand.replace(/s/g, '&#9824;').replace(/c/g, '&#9827;').replace(/h/g, '&#9829;').replace(/d/g, '&#9830;');
-        messages.push( players[winners[j]].public.name + ' ties the pot (' + playersWinnings + ') with ' + players[winners[j]].evaluatedHand.name + ' ' + htmlHand );
+        messages.push(winners[0].public.name + ' wins the pot (' + pot.amount + ') with ' + winners[0].evaluatedHand.name + ' ' + htmlHand );
+      } else {
+        var winnings = ~~(pot.amount / winners.length);
+        var oddChip = pot.amount - (winnings * winners.length)
+
+        var htmlHand = '';
+        for (var j in winners) { 
+            players[winners[j].seat].public.chipsInPlay += (winnings + (j === 0 ? oddChip : 0));
+            htmlHand += '[' + players[winners[j].seat].evaluatedHand.cards.join(', ') + '] ';
+        }
+        htmlHand = htmlHand.replace(/s/g, '&#9824;').replace(/c/g, '&#9827;').replace(/h/g, '&#9829;').replace(/d/g, '&#9830;');
+        const winnerNames = winners.map(x => x.public.name).join(', ');
+        messages.push( winnerNames + ' split the pot (' + winnings + ') ' + htmlHand );
       }
     }
+  
+    this.reset();
+  
+    return messages;
   }
-
-  this.reset();
-
-  return messages;
-}
 
 /**
  * Method that gives the pot to the winner, if the winner is already known

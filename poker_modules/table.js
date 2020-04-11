@@ -348,7 +348,7 @@ Table.prototype.showdown = function() {
 		currentPlayer = this.findNextPlayer( currentPlayer, {'inHand': (x) => x} );
 	}
 	
-	var messages = this.pot.destributeToWinners( this.seats, currentPlayer );
+	var messages = this.pot.distributeToWinners( this.seats, currentPlayer );
 
 	var messagesCount = messages.length;
 	for( var i=0 ; i<messagesCount ; i++ ) {
@@ -364,7 +364,9 @@ Table.prototype.showdown = function() {
 	var that = this;
 	setTimeout( function(){
 		that.endRound();
-	}, 10000 );
+    }, 10000 );
+
+    return (messages); // for unit tests
 };
 
 /**
