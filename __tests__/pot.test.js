@@ -141,10 +141,10 @@ describe('Pot distribution tests', () => {
         // Side pot-2: Split between D, E: should get 200
         expect   (messages.length).toEqual(3);
         expect(messages[0])
-            .toMatch("A, B, C, D split the pot (25)");
+            .toMatch("A, B, C, D split the pot (100)");
         expect(messages[1])
             .toMatch("D wins the pot (150)");
         expect(messages[2])
-            .toMatch("E, F split the pot (100)");
+            .toMatch("E, F split the pot (200)");
     });
 });

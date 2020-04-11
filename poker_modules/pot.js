@@ -110,7 +110,7 @@ Pot.prototype.distributeToWinners = function (players, firstPlayerToAct) {
         }
         htmlHand = htmlHand.replace(/s/g, '&#9824;').replace(/c/g, '&#9827;').replace(/h/g, '&#9829;').replace(/d/g, '&#9830;');
         const winnerNames = winners.map(x => x.public.name).join(', ');
-        messages.push( winnerNames + ' split the pot (' + winnings + ') ' + htmlHand );
+        messages.push( winnerNames + ' split the pot (' + pot.amount + ') ' + htmlHand );
       }
     }
   
