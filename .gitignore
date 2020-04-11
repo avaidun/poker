@@ -108,3 +108,7 @@ dist
 #intelliJ
 .idea/*
 .vscode/tasks.json
+
+# code coverage
+coverage/*
+

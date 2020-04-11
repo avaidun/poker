@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "private": false,
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "test": "jest --testPathPattern='__tests__/*'"
   },
   "repository": {
     "type": "git",
@@ -16,5 +17,22 @@
     "less-middleware": "~1.0.4",
     "socket.io": "~1.2.0",
     "connect": "~3.3.3"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageDirectory": "./coverage/",
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/__tests__/utils.test.js"
+    ],
+    "reporters": [
+      "default"
+    ],
+    "testPathIgnorePatterns": [
+      "__tests__/utils.test.js"
+    ],
+    "verbose": true
+  },
+  "jest-junit": {
+    "outputDirectory": "target/jest-junit"
   }
 }
