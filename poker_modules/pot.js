@@ -46,7 +46,7 @@ Pot.prototype.addTableBets = function( players ) {
       }
       else if( players[i].public.bet != smallestBet ) {
         allBetsAreEqual = false;
-        
+
         if( players[i].public.bet < smallestBet ) {
           smallestBet = players[i].public.bet;
         }
@@ -82,7 +82,7 @@ Pot.prototype.addTableBets = function( players ) {
 
     // Creating a new pot
     this.pots.push(
-      { 
+      {
         amount: 0,
         contributors: []
       }

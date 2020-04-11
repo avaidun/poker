@@ -26,8 +26,6 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 	this.playersInHandCount = 0;
 	// Reference to the last player that will act in the current phase (originally the dealer, unless there are bets in the pot)
 	this.lastPlayerToAct = null;
-	// The game has begun
-	this.gameIsOn = false;
 	// The game has only two players
 	this.headsUp = false;
 	// References to all the player objects in the table, indexed by seat number
@@ -81,6 +79,7 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 			seat: '',
 			action: ''
 		},
+		gameIsOn: false
 	};
 
 
@@ -236,7 +235,7 @@ Table.prototype.initializeRound = function( changeDealer ) {
 
 	if( this.playersSittingInCount > 1 ) {
 		// The game is on now
-		this.gameIsOn = true;
+		this.public.gameIsOn = true;
 		this.public.board = ['', '', '', '', ''];
 		this.deck.shuffle();
 		this.headsUp = this.playersSittingInCount === 2;
@@ -717,7 +716,7 @@ Table.prototype.playerSatIn = function( seat ) {
  * Start a game if there are more than 2 players
  */
 Table.prototype.startGame = function() {
-	if( !this.gameIsOn && this.playersSittingInCount > 1 ) {
+	if( !this.public.gameIsOn && this.playersSittingInCount > 1 ) {
 		// Initialize the game
 		this.initializeRound( false );
 		this.emitEvent('startGame', this.public );
@@ -768,7 +767,7 @@ Table.prototype.playerLeft = function( seat ) {
 		this.seats[seat] = null;
 		this.emitEvent( 'table-data', this.public );
 		
-		if (!this.gameIsOn) {
+		if (!this.public.gameIsOn) {
 			return
 		}
 		// If a player left a heads-up match and there are people waiting to play, start a new round
@@ -917,7 +916,7 @@ Table.prototype.stopGame = function() {
 	this.public.board = ['', '', '', '', ''];
 	this.lastPlayerToAct = null;
 	this.removeAllCardsFromPlay();
-	this.gameIsOn = false;
+	this.public.gameIsOn = false;
 	this.emitEvent( 'gameStopped', this.public );
 };
 

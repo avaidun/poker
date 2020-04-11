@@ -15,7 +15,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.mySeat = null;
 	$scope.betAmount = 0;
 	$rootScope.sittingOnTable = null;
-	$scope.gameStarted = false;
+	$scope.gameIsOn = false;
     $scope.playerCount = 0;
     $scope.defaultActionTimer = null;
 	var showingNotification = false;
@@ -33,6 +33,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
         $scope.betAmount = data.table.bigBlind;
         $scope.defaultActionTimeout = data.table.defaultActionTimeout;
         $scope.minBet = data.table.minBet;
+        $scope.gameIsOn = data.table.gameIsOn;
 	});
 
 	// Joining the socket room
@@ -412,7 +413,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	//When game has started
 	socket.on('startGame', function() {
-		$scope.gameStarted = true;
+		$scope.gameIsOn = true;
 		$scope.$digest();
 	})
 }]);
