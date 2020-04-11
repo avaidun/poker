@@ -50,10 +50,17 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}
 
 	$scope.maxBetAmount = function() {
-		if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] === null ) return 0;
-		return $scope.actionState === "actBettedPot" ? $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet : $scope.table.seats[$scope.mySeat].chipsInPlay;
-	}
-
+        if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] === null ) return 0;
+        
+        // Since the slider only goes in steps of minBet, if the chipsInPlay is not a multiple of minBet, the slider won't select all chips to go all-in
+        // So increase the slider range by minBet. The value is checked in bet() and raise() functions to ensure we are not bidding more than the player's stash
+        var val = $scope.actionState === "actBettedPot" ? $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet : $scope.table.seats[$scope.mySeat].chipsInPlay;
+        if ((val % $scope.table.minBet) !== 0) {
+            val += $scope.table.minBet;
+        }
+        return (val);
+    }
+    
 	$scope.callAmount = function() {
 		if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] == null ) return 0;
 		var callAmount = +$scope.table.biggestBet - $scope.table.seats[$scope.mySeat].bet;
@@ -237,6 +244,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	$scope.bet = function() {
         $scope.clearDefaultActionTimer();
+        $scope.betAmount = Math.min($scope.betAmount, $scope.table.seats[$scope.mySeat].chipsInPlay);
 		socket.emit( 'bet', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playBetSound();
@@ -248,6 +256,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	$scope.raise = function() {
         $scope.clearDefaultActionTimer();
+        $scope.betAmount = Math.min($scope.betAmount, $scope.table.seats[$scope.mySeat].chipsInPlay);
 		socket.emit( 'raise', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playRaiseSound();

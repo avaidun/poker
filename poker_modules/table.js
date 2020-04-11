@@ -709,7 +709,7 @@ Table.prototype.otherPlayersAreAllIn = function() {
 		if( this.seats[currentPlayer].public.chipsInPlay === 0 ) {
 			playersAllIn++;
 		}
-		currentPlayer = this.findNextPlayer( currentPlayer );
+        currentPlayer = this.findNextPlayer( currentPlayer, {'inHand': (x) => x} );
 	}
 
 	// In this case, all the players are all in. There should be no actions. Move to the next round.
