@@ -293,8 +293,7 @@ Table.prototype.initializeNextPhase = function() {
  * Making the next player the active one
  */
 Table.prototype.actionToNextPlayer = function() {
-    this.public.activeSeat = this.findNextPlayer( this.public.activeSeat, 
-        {'chipsInPlay': (x) => x > 0, 'inHand': (x) => (x)});
+    this.public.activeSeat = this.findNextPlayer(this.public.activeSeat);
 
 	switch( this.public.phase ) {
 		case 'smallBlind':
