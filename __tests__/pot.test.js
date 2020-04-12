@@ -69,6 +69,7 @@ describe('Pot creation tests', () => {
         expect(table.pot.pots[0].amount).toEqual(600);
         expect(table.pot.pots[0].contributors).toEqual([0, 1, 2, 3, 5]);
     });
+
     test(`Check contents of side pot 1`, async () => {
         expect(table.pot.pots[1].amount).toEqual(400);
         expect(table.pot.pots[1].contributors).toEqual([1, 2, 3, 5]);
@@ -146,5 +147,44 @@ describe('Pot distribution tests', () => {
             .toMatch("D wins the pot (150)");
         expect(messages[2])
             .toMatch("E, F split the pot (200)");
+    });
+});
+
+
+describe('One person remaining tests', () => {
+    
+    const t = Utils.setupDefaultTable();
+    const table = t.table;
+    const act = Utils.act;
+
+    var positionE = 'E'.charCodeAt(0) - 'A'.charCodeAt(0);
+    table.seats[positionE].public.chipsInPlay = 40 + 164;
+
+    console.log("--------- Pre Flop -------------");
+    act(table, 'smallBlind', 'A', 'SmallBlind');
+    act(table, 'bigBlind', 'B', 'BigBlind');
+    act(table, 'preflop', 'C', 'Call');
+    act(table, 'preflop', 'D', 'Fold');
+    act(table, 'preflop', 'E', 'Raise', 40);
+    act(table, 'preflop', 'F', 'Fold');
+    act(table, 'preflop', 'A', 'Call');
+    act(table, 'preflop', 'B', 'Call');
+    act(table, 'preflop', 'C', 'Call');
+
+    // --------- Flop -------------
+    console.log("--------- Flop -------------");
+    act(table, 'flop', 'A', 'Check');
+    act(table, 'flop', 'B', 'Fold');
+    act(table, 'flop', 'C', 'Check');
+    // No D
+    act(table, 'flop', 'E', 'Bet', 164);
+    act(table, 'flop', 'A', 'Fold');
+    // No B
+    act(table, 'flop', 'C', 'Fold');
+
+    // --------- E should win -------------
+
+    test(`One person remaining`,  () => {
+        expect(table.seats[positionE].public.chipsInPlay).toEqual(40*4+164);
     });
 });
