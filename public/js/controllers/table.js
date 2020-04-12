@@ -27,13 +27,13 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$http({
 		url: '/table-data/' + $routeParams.tableId,
 		method: 'GET'
-	}).success(function( data, status, headers, config ) {
-		$scope.table = data.table;
-		$scope.buyInAmount = data.table.maxBuyIn;
-        $scope.betAmount = data.table.bigBlind;
-        $scope.defaultActionTimeout = data.table.defaultActionTimeout;
-        $scope.minBet = data.table.minBet;
-        $scope.gameIsOn = data.table.gameIsOn;
+	}).then(function( data, status, headers, config ) {
+		$scope.table = data.data.table;
+		$scope.buyInAmount = data.data.table.maxBuyIn;
+        $scope.betAmount = data.data.table.bigBlind;
+        $scope.defaultActionTimeout = data.data.table.defaultActionTimeout;
+        $scope.minBet = data.data.table.minBet;
+        $scope.gameIsOn = data.data.table.gameIsOn;
 	});
 
 	// Joining the socket room
