@@ -22,30 +22,6 @@ var socket = {
 
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 10, 5, 500, 50, false, 3000000, 10);
 
-var employees=[]
-employees[0]={name:"George", age:32, retiredate:"March 12, 2014"}
-employees[1]={name:"Edward", age:17, retiredate:"June 2, 2023"}
-employees[2]={name:"Christine", age:58, retiredate:"December 20, 2036"}
-employees[3]={name:"Sarah", age:62, retiredate:"April 30, 2020"}
-
-function test(employees) {
-    contributors = [];
-    for (i in employees) {
-        if (employees[i].age > 20) {
-            contributors.push({name: employees[i].name, age: employees[i].age});
-        }
-    }
-    contributors.sort(function(a, b){
-        return b.age-a.age
-    });
-    console.log(contributors);
-}
-
-test(employees);
-
-employees.sort();
-
-
 async function processLineByLine() {
     const fileStream = fs.createReadStream('../rrevents/FullGameAARR.rr');
 
