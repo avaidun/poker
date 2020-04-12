@@ -482,7 +482,7 @@ Table.prototype.playerFolded = function() {
 	this.pot.removePlayer( this.public.activeSeat );
 	if( this.playersInHandCount <= 1 ) {
 		this.pot.addTableBets( this.seats );
-		var winnersSeat = this.findNextPlayer();
+        var winnersSeat = this.findNextPlayer(this.public.activeSeat, {'inHand': (x) => x} );
 		this.pot.giveToWinner( this.seats[winnersSeat] );
 		this.endRound();
 	} else {
@@ -593,7 +593,7 @@ Table.prototype.playerRaised = function( amount ) {
 		amount:amount
 	});
 
-	this.seats[this.public.activeSeat].raise( amount );
+	// this.seats[this.public.activeSeat].raise( amount );
 	var oldBiggestBet = this.public.biggestBet;
 	this.public.biggestBet = this.public.biggestBet < this.seats[this.public.activeSeat].public.bet ? this.seats[this.public.activeSeat].public.bet : this.public.biggestBet;
 	var raiseAmount = this.public.biggestBet - oldBiggestBet;
