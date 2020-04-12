@@ -144,7 +144,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}
 
 	$scope.seatOccupied = function( seat ) {
-		return !$rootScope.sittingOnTable || ( $scope.table.seats !== 'undefined' && typeof $scope.table.seats[seat] !== 'undefined' && $scope.table.seats[seat] && $scope.table.seats[seat].name );
+		return !$rootScope.sittingOnTable || ( $scope.table.seats !== 'undefined' && typeof $scope.table.seats[seat] !== 'undefined' && $scope.table.seats[seat] && $scope.table.seats[seat].name && $scope.table.seats[seat].sittingIn);
 	}
 
 	// Leaving the socket room

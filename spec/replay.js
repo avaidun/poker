@@ -23,7 +23,7 @@ var socket = {
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 10, 5, 500, 50, false, 3000000, 10);
 
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/Table2020-04-12T03-09.rr');
+    const fileStream = fs.createReadStream('../rrevents/CrashApr12_12_30.rr');
 
     const rl = readline.createInterface({
         input: fileStream,

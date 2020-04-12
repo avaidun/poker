@@ -36,7 +36,7 @@ app.directive( 'seat', [function() {
 			}
 
 			scope.seatOccupied = function( seat ) {
-				return !scope.sittingOnTable || ( typeof scope.player !== 'undefinde' && scope.player && scope.player.name );
+				return !scope.sittingOnTable || ( typeof scope.player !== 'undefinde' && scope.player && scope.player.name && scope.player.sittingIn);
 			}
 		}
 	};
