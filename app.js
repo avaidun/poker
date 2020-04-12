@@ -129,7 +129,7 @@ io.sockets.on('connection', function( socket ) {
 	 */
 	socket.on('leaveTable', function( callback ) {
 		// If the player was sitting on a table
-		if( players[socket.id].sittingOnTable !== false && tables[players[socket.id].sittingOnTable] !== false ) {
+		if( typeof players[socket.id] !== 'undefined' && players[socket.id].sittingOnTable !== false && tables[players[socket.id].sittingOnTable] !== false ) {
 			// The seat on which the player was sitting
 			var seat = players[socket.id].seat;
 			// The table on which the player was sitting
@@ -226,7 +226,7 @@ io.sockets.on('connection', function( socket ) {
 	 * @param function callback
 	 */
 	socket.on('sitIn', function( callback ) {
-		if( players[socket.id].sittingOnTable !== false && players[socket.id].seat !== null && !players[socket.id].public.sittingIn ) {
+		if( typeof players[socket.id] !== 'undefined' && players[socket.id].sittingOnTable !== false && players[socket.id].seat !== null && !players[socket.id].public.sittingIn ) {
 			// Getting the table id from the player object
 			var tableId = players[socket.id].sittingOnTable;
 			tables[tableId].playerSatIn( players[socket.id].seat );
@@ -305,7 +305,7 @@ io.sockets.on('connection', function( socket ) {
 	 * @param function callback
 	 */
 	socket.on('fold', function( callback ){
-		if( players[socket.id].sittingOnTable !== false ) {
+		if( typeof players[socket.id] !== 'undefined' && players[socket.id].sittingOnTable !== false ) {
 			var tableId = players[socket.id].sittingOnTable;
 			var activeSeat = tables[tableId].public.activeSeat;
 
