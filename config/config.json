@@ -7,7 +7,7 @@
             "maxBuyIn": 500,
             "minBuyIn": 50,
             "isPrivate": false,
-            "defaultActionTimeout": 30000,
+            "defaultActionTimeout": 3000000,
             "minBet": 10,
             "recordReplayEnabled": true
         },
@@ -18,7 +18,7 @@
             "maxBuyIn": 500,
             "minBuyIn": 50,
             "isPrivate": false,
-            "defaultActionTimeout": 30000,
+            "defaultActionTimeout": 3000000,
             "minBet": 5,
             "recordReplayEnabled": true
         }

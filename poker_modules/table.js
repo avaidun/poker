@@ -167,7 +167,7 @@ Table.prototype.findPlayer = function(direction, offset, status) {
             return(index);
         }
     }
-    return (null)
+    return (offset);
 };
 
 
@@ -307,10 +307,7 @@ Table.prototype.initializeNextPhase = function() {
 
 	// If all other players are all in, there should be no actions. Move to the next round.
 	if( this.otherPlayersAreAllIn() ) {
-		var that = this;
-		setTimeout( function(){
-			that.endPhase();
-		}, 1000 );
+	    this.endPhase();
 	} else {
 		this.seats[this.public.activeSeat].socket.emit('actNotBettedPot');
 	}
@@ -794,6 +791,8 @@ Table.prototype.otherPlayersAreAllIn = function() {
 	var currentPlayer = this.public.activeSeat;
 	var playersAllIn = 0;
 	for( var i=0 ; i<this.playersInHandCount ; i++ ) {
+	    if (this.seats[currentPlayer] === undefined)
+	        console.log("Error")
 		if( this.seats[currentPlayer].public.chipsInPlay === 0 ) {
 			playersAllIn++;
 		}
