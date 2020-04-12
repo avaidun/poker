@@ -1,7 +1,7 @@
 <div class="player-wrap">
 	<div class="player-cards" ng-class="{dealt: player.hasCards}">
-		<div class="card" ng-show="seatOccupied(seatIndex)" ng-class="getCardClass( seatIndex, 0 )"></div>
-		<div class="card" ng-show="seatOccupied(seatIndex)" ng-class="getCardClass( seatIndex, 1 )"></div>
+		<div class="card" ng-show="seatOccupied(seatIndex) && player.sittingIn " ng-class="getCardClass( seatIndex, 0 )"></div>
+		<div class="card" ng-show="seatOccupied(seatIndex) && player.sittingIn" ng-class="getCardClass( seatIndex, 1 )"></div>
 	</div>
 	<div class="seat" ng-show="seatOccupied(seatIndex)" ng-class="{active: activeSeat===seatIndex}">
 		<a class="sitIn" ng-show="!player.name" ng-click="showBuyInModal( {seat:seatIndex} )">Sit In</a>
