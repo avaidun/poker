@@ -94,8 +94,6 @@
 		</div> -->
 		<div class="cell">
 			<button class="control-button" ng-click="startGame()" ng-disabled="playerCount < 2" ng-show="!gameIsOn">Start Game</button>
-		</div>
-		<div class="cell">
 			<button class="control-button" ng-click="fold()" ng-show="showFoldButton()">Fold</button>
 			<!--Give no option to Sit Out-->
 			<!--<button class="control-button" ng-click="postBlind(false)" ng-show="actionState === 'postSmallBlind' || actionState === 'postBigBlind'">Sit Out</button>-->
@@ -120,11 +118,15 @@
 			<input id="raise-slider" class="raise-slider" type="range" min="{{minBetAmount()}}" max="{{maxBetAmount()}}" ng-model="betAmount" step="{{table.minBet}}" >
 		</div>
 	</div>
+	<div id="zoom">
+		<br>
+		<a href={{url}} ng-disabled="isURLBlank()" target="_blank">Zoom:</a> <input type="text" size="100" ng-model="url">
+	</div>
 	<div id="audio">
-		<audio id="fold-sound" src="/audio/fold.wav" preload="auto">
-		<audio id="check-sound" src="/audio/check.wav" preload="auto">
-		<audio id="call-sound" src="/audio/call.wav" preload="auto">
-		<audio id="bet-sound" src="/audio/bet.wav" preload="auto">
-		<audio id="raise-sound" src="/audio/raise.wav" preload="auto">
+		<audio id="fold-sound" src="/audio/fold.wav" preload="auto"></audio>
+		<audio id="check-sound" src="/audio/check.wav" preload="auto"></audio>
+		<audio id="call-sound" src="/audio/call.wav" preload="auto"></audio>
+		<audio id="bet-sound" src="/audio/bet.wav" preload="auto"></audio>
+		<audio id="raise-sound" src="/audio/raise.wav" preload="auto"></audio>
 	</div>
 </div>

@@ -114,6 +114,7 @@ Table.prototype.emitEvent = function( eventName, eventData ){
  */
 Table.prototype.recordAndReplay = function(rec) {
 	if (!this.recordReplayEnabled) return;
+	rec.timeStamp = Date.now();
 	this.ws.write(JSON.stringify(rec)+"\n");
 }
 
@@ -224,7 +225,8 @@ Table.prototype.initializeRound = function( changeDealer ) {
 		this.recordAndReplay({
 			action:"startGame",
 			dealerSeat:this.public.dealerSeat,
-			cards: this.deck.cards
+			cards: this.deck.cards,
+			players: this.public.seats
 		});
 
 		this.initializeSmallBlind();
