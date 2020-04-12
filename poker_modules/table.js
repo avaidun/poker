@@ -1,6 +1,8 @@
 var Deck = require('./deck'),
 	Pot = require('./pot');
 
+// DEVELOPMENT PURPOSES
+const fs = require('fs');
 /**
  * The table "class"
  * @param string	id (the table id)
@@ -15,7 +17,7 @@ var Deck = require('./deck'),
  * @param bool 		privateTable (flag that shows whether the table will be shown in the lobby)
  */
 var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, maxBuyIn, minBuyIn, privateTable, 
-    defaultActionTimeout, minBet ) {
+    defaultActionTimeout, minBet, recordReplayEnabled ) {
 	// The table is not displayed in the lobby
 	this.privateTable = privateTable;
 	// The number of players who receive cards at the begining of each round
@@ -24,8 +26,6 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 	this.playersInHandCount = 0;
 	// Reference to the last player that will act in the current phase (originally the dealer, unless there are bets in the pot)
 	this.lastPlayerToAct = null;
-	// The game has begun
-	this.gameIsOn = false;
 	// The game has only two players
 	this.headsUp = false;
 	// References to all the player objects in the table, indexed by seat number
@@ -36,6 +36,7 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 	this.eventEmitter = eventEmitter;
 	// The pot with its methods
 	this.pot = new Pot;
+	this.recordReplayEnabled = recordReplayEnabled;
 	// All the public table data
 	this.public = {
 		// The table id
@@ -78,10 +79,21 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 			seat: '',
 			action: ''
 		},
+		gameIsOn: false
 	};
 	// Initializing the empty seats
 	for( var i=0 ; i<this.public.seatsCount ; i++ ) {
 		this.seats[i] = null;
+	}
+
+	if (name === "REPLAY") this.recordReplayEnabled = false;
+	if (this.recordReplayEnabled) {
+		fn = "./rrevents/Table" + (new Date().toISOString().replace(/:/, '-').split(/:/)[0]) + "\.rr";
+		this.ws = fs.createWriteStream(fn);
+		this.ws.on('error', function(e) {
+			console.error(e);
+			this.recordReplayEnabled = false;
+		});
 	}
 };
 
@@ -95,6 +107,15 @@ Table.prototype.emitEvent = function( eventName, eventData ){
 		notification: ''
 	});
 };
+
+/**
+ * Records the moves for development purposes
+ * @param string rec
+ */
+Table.prototype.recordAndReplay = function(rec) {
+	if (!this.recordReplayEnabled) return;
+	this.ws.write(JSON.stringify(rec)+"\n");
+}
 
 /**
  * Finds the next player of a certain status on the table
@@ -130,7 +151,7 @@ Table.prototype.findPlayer = function(direction, offset, status) {
         'inHand': (x) => (x == true),
         'chipsInPlay': (x) => (x > 0)
     };
-    
+
     for (var i = 0; i < this.public.seatsCount; i++) {
         var index = (offset + direction * (i + 1) + this.public.seatsCount) % this.public.seatsCount;
         if (this.seats[index] === null) {
@@ -158,7 +179,7 @@ Table.prototype.initializeRound = function( changeDealer ) {
 
 	if( this.playersSittingInCount > 1 ) {
 		// The game is on now
-		this.gameIsOn = true;
+		this.public.gameIsOn = true;
 		this.public.board = ['', '', '', '', ''];
 		this.deck.shuffle();
 		this.headsUp = this.playersSittingInCount === 2;
@@ -168,7 +189,7 @@ Table.prototype.initializeRound = function( changeDealer ) {
 			// If a player is sitting on the current seat
 			if( this.seats[i] !== null && this.seats[i].public.sittingIn ) {
 				if( !this.seats[i].public.chipsInPlay ) {
-					this.seats[seat].sitOut();
+					this.seats[i].sitOut();
 					this.playersSittingInCount--;
 				} else {
 					this.playersInHandCount++;
@@ -179,7 +200,7 @@ Table.prototype.initializeRound = function( changeDealer ) {
 
 		// Giving the dealer button to a random player
 		if( this.public.dealerSeat === null ) {
-			var randomDealerSeat = Math.ceil( Math.random() * this.playersSittingInCount );
+			var randomDealerSeat =  Math.ceil( Math.random() * this.playersSittingInCount );
 			var playerCounter = 0;
 			var i = -1;
 
@@ -199,6 +220,12 @@ Table.prototype.initializeRound = function( changeDealer ) {
 
 		// clear biggeet bet
 		this.public.biggestBet = 0;
+
+		this.recordAndReplay({
+			action:"startGame",
+			dealerSeat:this.public.dealerSeat,
+			cards: this.deck.cards
+		});
 
 		this.initializeSmallBlind();
 	}
@@ -389,6 +416,12 @@ Table.prototype.endPhase = function() {
  * @param int seat
  */
 Table.prototype.playerPostedSmallBlind = function() {
+
+	this.recordReplayEnabled && this.recordAndReplay({
+		action:"playerPostedSmallBlind",
+		name:this.seats[this.public.activeSeat].public.name,
+	});
+
 	var bet = this.seats[this.public.activeSeat].public.chipsInPlay >= this.public.smallBlind ? this.public.smallBlind : this.seats[this.public.activeSeat].public.chipsInPlay;
 	this.seats[this.public.activeSeat].bet( bet );
 	this.log({
@@ -407,6 +440,12 @@ Table.prototype.playerPostedSmallBlind = function() {
  * @param int seat
  */
 Table.prototype.playerPostedBigBlind = function() {
+
+	this.recordAndReplay( {
+		action:"playerPostedBigBlind",
+		name:this.seats[this.public.activeSeat].public.name,
+	});
+
 	var bet = this.seats[this.public.activeSeat].public.chipsInPlay >= this.public.bigBlind ? this.public.bigBlind : this.seats[this.public.activeSeat].public.chipsInPlay;
     this.seats[this.public.activeSeat].bet( bet );
 	this.log({
@@ -424,6 +463,12 @@ Table.prototype.playerPostedBigBlind = function() {
  * Checks if the round should continue after a player has folded
  */
 Table.prototype.playerFolded = function() {
+
+	this.recordAndReplay({
+		action:"playerFolded",
+		name:this.seats[this.public.activeSeat].public.name
+	});
+
 	this.seats[this.public.activeSeat].fold();
 	this.log({
 		message: this.seats[this.public.activeSeat].public.name + ' folded',
@@ -453,6 +498,12 @@ Table.prototype.playerFolded = function() {
  * When a player checks
  */
 Table.prototype.playerChecked = function() {
+
+	this.recordAndReplay({
+		action:"playerChecked",
+		name:this.seats[this.public.activeSeat].public.name,
+	});
+
 	this.log({
 		message: this.seats[this.public.activeSeat].public.name + ' checked',
 		action: 'check',
@@ -473,6 +524,12 @@ Table.prototype.playerChecked = function() {
  * When a player calls
  */
 Table.prototype.playerCalled = function() {
+
+	this.recordAndReplay({
+		action:"playerCalled",
+		name:this.seats[this.public.activeSeat].public.name,
+	});
+
 	var calledAmount = this.public.biggestBet - this.seats[this.public.activeSeat].public.bet;
 	this.seats[this.public.activeSeat].bet( calledAmount );
 
@@ -496,6 +553,13 @@ Table.prototype.playerCalled = function() {
  * When a player bets
  */
 Table.prototype.playerBetted = function( amount ) {
+
+	this.recordAndReplay({
+		action:"playerBetted",
+		name:this.seats[this.public.activeSeat].public.name,
+		amount:amount
+	});
+
 	this.seats[this.public.activeSeat].bet( amount );
 	this.public.biggestBet = this.public.biggestBet < this.seats[this.public.activeSeat].public.bet ? this.seats[this.public.activeSeat].public.bet : this.public.biggestBet;
 
@@ -522,6 +586,14 @@ Table.prototype.playerBetted = function( amount ) {
  */
 Table.prototype.playerRaised = function( amount ) {
     this.seats[this.public.activeSeat].raise( amount );
+
+	this.recordAndReplay({
+		action:"playerRaised",
+		name:this.seats[this.public.activeSeat].public.name,
+		amount:amount
+	});
+
+	this.seats[this.public.activeSeat].raise( amount );
 	var oldBiggestBet = this.public.biggestBet;
 	this.public.biggestBet = this.public.biggestBet < this.seats[this.public.activeSeat].public.bet ? this.seats[this.public.activeSeat].public.bet : this.public.biggestBet;
 	var raiseAmount = this.public.biggestBet - oldBiggestBet;
@@ -548,6 +620,14 @@ Table.prototype.playerRaised = function( amount ) {
  * @param int 		seat
  */
 Table.prototype.playerSatOnTheTable = function( player, seat, chips ) {
+
+	this.recordAndReplay({
+		action:"playerSatOnTheTable",
+		name:player.public.name,
+		seat:seat,
+		chips:chips
+	});
+
 	this.seats[seat] = player;
 	this.public.seats[seat] = player.public;
 
@@ -583,7 +663,7 @@ Table.prototype.playerSatIn = function( seat ) {
  * Start a game if there are more than 2 players
  */
 Table.prototype.startGame = function() {
-	if( !this.gameIsOn && this.playersSittingInCount > 1 ) {
+	if( !this.public.gameIsOn && this.playersSittingInCount > 1 ) {
 		// Initialize the game
 		this.initializeRound( false );
 		this.emitEvent('startGame', this.public );
@@ -597,6 +677,13 @@ Table.prototype.startGame = function() {
  * @param int seat
  */
 Table.prototype.playerLeft = function( seat ) {
+
+	this.recordAndReplay({
+		action:"playerLeft",
+		seat:seat,
+		name:this.seats[seat].public.name,
+	});
+
 	this.log({
 		message: this.seats[seat].public.name + ' left',
 		action: '',
@@ -627,7 +714,7 @@ Table.prototype.playerLeft = function( seat ) {
 		this.seats[seat] = null;
 		this.emitEvent( 'table-data', this.public );
 		
-		if (!this.gameIsOn) {
+		if (!this.public.gameIsOn) {
 			return
 		}
 		// If a player left a heads-up match and there are people waiting to play, start a new round
@@ -766,10 +853,9 @@ Table.prototype.stopGame = function() {
 	this.pot.reset();
 	this.public.activeSeat = null;
 	this.public.board = ['', '', '', '', ''];
-	this.public.activeSeat = null;
 	this.lastPlayerToAct = null;
 	this.removeAllCardsFromPlay();
-	this.gameIsOn = false;
+	this.public.gameIsOn = false;
 	this.emitEvent( 'gameStopped', this.public );
 };
 

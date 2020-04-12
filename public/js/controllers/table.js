@@ -15,7 +15,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.mySeat = null;
 	$scope.betAmount = 0;
 	$rootScope.sittingOnTable = null;
-	$scope.gameStarted = false;
+	$scope.gameIsOn = false;
     $scope.playerCount = 0;
     $scope.defaultActionTimer = null;
 	var showingNotification = false;
@@ -27,16 +27,21 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$http({
 		url: '/table-data/' + $routeParams.tableId,
 		method: 'GET'
-	}).then(function( data, status, headers, config ) {
-		$scope.table = data.data.table;
-		$scope.buyInAmount = data.data.table.maxBuyIn;
-        $scope.betAmount = data.data.table.bigBlind;
-        $scope.defaultActionTimeout = data.data.table.defaultActionTimeout;
-        $scope.minBet = data.data.table.minBet;
+	}).success(function( data, status, headers, config ) {
+		$scope.table = data.table;
+		$scope.buyInAmount = data.table.maxBuyIn;
+        $scope.betAmount = data.table.bigBlind;
+        $scope.defaultActionTimeout = data.table.defaultActionTimeout;
+        $scope.minBet = data.table.minBet;
+        $scope.gameIsOn = data.table.gameIsOn;
 	});
 
 	// Joining the socket room
 	socket.emit( 'enterRoom', $routeParams.tableId );
+
+	$scope.isURLBlank = function() {
+		return ($scope.url === "");
+	}
 
 	$scope.minBetAmount = function() {
 		if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] === null ) return 0;
@@ -51,7 +56,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	$scope.maxBetAmount = function() {
         if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] === null ) return 0;
-        
+
         // Since the slider only goes in steps of minBet, if the chipsInPlay is not a multiple of minBet, the slider won't select all chips to go all-in
         // So increase the slider range by minBet. The value is checked in bet() and raise() functions to ensure we are not bidding more than the player's stash
         var val = $scope.actionState === "actBettedPot" ? $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet : $scope.table.seats[$scope.mySeat].chipsInPlay;
@@ -60,7 +65,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
         }
         return (val);
     }
-    
+
 	$scope.callAmount = function() {
 		if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] == null ) return 0;
 		var callAmount = +$scope.table.biggestBet - $scope.table.seats[$scope.mySeat].bet;
@@ -421,7 +426,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	//When game has started
 	socket.on('startGame', function() {
-		$scope.gameStarted = true;
+		$scope.gameIsOn = true;
 		$scope.$digest();
 	})
 }]);

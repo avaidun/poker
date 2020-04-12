@@ -94,7 +94,7 @@ dist
 # Serverless directories
 .serverless/
 
-# FuseBox cache`
+# FuseBox cache
 .fusebox/
 
 # DynamoDB Local files
@@ -104,7 +104,8 @@ dist
 .tern-port
 .vscode/launch.json
 .vscode/settings.json
-
+.vscode/tasks.json
+rrevents/*
 #intelliJ
 .idea/*
 .vscode/tasks.json

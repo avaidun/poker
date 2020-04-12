@@ -439,7 +439,7 @@ fs.readFile('./config/config.json', 'utf-8', (err, data) => {
         tables[tableCount] = new Table( tableCount, table.name, eventEmitter(tableCount), 
             table.numPlayers, 2 * table.smallBlind, table.smallBlind, 
             table.maxBuyIn, table.minBuyIn, table.isPrivate,
-            table.defaultActionTimeout, table.minBet);
+            table.defaultActionTimeout, table.minBet, table.recordReplayEnabled);
         tableCount++;
     }
 })
