@@ -43,34 +43,37 @@ async function processLineByLine() {
                 table.initializeRound(false);
                 table.deck.cards = rec.cards;
                 break;
-            case "playerPostedSmallBlind":
+            case 'smallBlind':
                 table.playerPostedSmallBlind();
                 break;
-            case "playerPostedBigBlind":
+            case 'bigBlind':
                 table.playerPostedBigBlind();
                 break;
-            case "playerFolded":
+            case 'fold':
                 table.playerFolded();
                 break;
-            case "playerChecked":
+            case 'check':
                 table.playerChecked();
                 break;
-            case "playerCalled":
+            case 'call':
                 table.playerCalled();
                 break;
-            case "playerBetted":
-                table.playerBetted(rec.amount);
+            case 'bet':
+                table.playerBetted(parseInt(rec.notification.split(' ')[1]));
                 break;
-            case "playerRaised":
-                table.playerRaised(rec.amount);
+            case 'raise':
+                table.playerRaised(parseInt(rec.notification.split(' ')[1]));
                 break;
-            case "playerSatOnTheTable":
-                players[rec.seat] = new Player( socket, rec.name, rec.chips );
-                table.playerSatOnTheTable(players[rec.seat], rec.seat, rec.chips );
+            case 'sat':
+                seat = parseInt(rec.notification.split(' ')[0]);
+                chips = parseInt(rec.notification.split(' ')[1]);
+                players[seat] = new Player( socket, rec.message.split(':')[0], chips );
+                table.playerSatOnTheTable(players[seat], seat, chips );
                 break;
-            case "playerLeft":
-                table.playerLeft(rec.seat);
-                players[rec.seat] = null;
+            case 'left':
+                seat = parseInt(rec.message.split(':')[1]);
+                table.playerLeft(seat);
+                players[seat] = null;
                 break;
                 default:
                     console.log(`Line from file: ${str}`);

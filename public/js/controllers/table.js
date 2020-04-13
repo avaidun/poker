@@ -261,7 +261,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	$scope.raise = function() {
         $scope.clearDefaultActionTimer();
-        $scope.betAmount = Math.min($scope.betAmount, $scope.table.seats[$scope.mySeat].chipsInPlay);
+		$scope.betAmount = Math.min($scope.betAmount, $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet);
 		socket.emit( 'raise', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playRaiseSound();
@@ -333,11 +333,15 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 				sounds.playCallSound();
 				break;
 			case 'bet':
+			case 'smallBet':
+			case 'bigBet':
 				sounds.playBetSound();
 				break;
 			case 'raise':
 				sounds.playRaiseSound();
 				break;
+			case 'left':
+				$scope.player = null;
 		}
 		if( data.log.message ) {
 			var messageBox = document.querySelector('#messages');

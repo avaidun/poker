@@ -100,12 +100,10 @@ var Table = function( id, name, eventEmitter, seatsCount, bigBlind, smallBlind, 
 // The function that emits the events of the table
 Table.prototype.emitEvent = function( eventName, eventData ){
 	this.eventEmitter( eventName, eventData );
-	this.log({
-		message: '',
-		action: '',
-		seat: '',
-		notification: ''
-	});
+	this.public.log.message = '';
+	this.public.log.action = '';
+	this.public.log.seat = '';
+	this.public.log.notification = '';
 };
 
 /**
@@ -190,8 +188,10 @@ Table.prototype.initializeRound = function( changeDealer ) {
 			// If a player is sitting on the current seat
 			if( this.seats[i] !== null && this.seats[i].public.sittingIn ) {
 				if( !this.seats[i].public.chipsInPlay ) {
-					this.seats[i].sitOut();
-					this.playersSittingInCount--;
+					// this.sittingOnTable = false;
+					// this.seats[i].sitOut();
+					// this.playersSittingInCount--;
+					this.playerLeft(i);
 				} else {
 					this.playersInHandCount++;
 					this.seats[i].prepareForNewRound();
@@ -223,7 +223,7 @@ Table.prototype.initializeRound = function( changeDealer ) {
 		this.public.biggestBet = 0;
 
 		this.recordAndReplay({
-			action:"startGame",
+			action:'startGame',
 			dealerSeat:this.public.dealerSeat,
 			cards: this.deck.cards,
 			players: this.public.seats
@@ -377,13 +377,7 @@ Table.prototype.showdown = function() {
 
 	var messagesCount = messages.length;
 	for( var i=0 ; i<messagesCount ; i++ ) {
-		this.log({
-			message: messages[i],
-			action: '',
-			seat: '',
-			notification: ''
-		});
-		this.emitEvent( 'table-data', this.public );
+		this.log(messages[i]);
 	}
 
 	var that = this;
@@ -415,22 +409,11 @@ Table.prototype.endPhase = function() {
  * @param int seat
  */
 Table.prototype.playerPostedSmallBlind = function() {
-
-	this.recordReplayEnabled && this.recordAndReplay({
-		action:"playerPostedSmallBlind",
-		name:this.seats[this.public.activeSeat].public.name,
-	});
-
 	var bet = this.seats[this.public.activeSeat].public.chipsInPlay >= this.public.smallBlind ? this.public.smallBlind : this.seats[this.public.activeSeat].public.chipsInPlay;
 	this.seats[this.public.activeSeat].bet( bet );
-	this.log({
-		message: this.seats[this.public.activeSeat].public.name + ' posted the small blind',
-		action: 'bet',
-		seat: this.public.activeSeat,
-		notification: 'Posted blind'
-	});
 	this.public.biggestBet = this.public.biggestBet < bet ? bet : this.public.biggestBet;
-	this.emitEvent( 'table-data', this.public );
+	this.log(this.seats[this.public.activeSeat].public.name + ' posted the small blind',
+		'smallBlind', 'Posted blind');
 	this.initializeBigBlind();
 };
 
@@ -439,22 +422,11 @@ Table.prototype.playerPostedSmallBlind = function() {
  * @param int seat
  */
 Table.prototype.playerPostedBigBlind = function() {
-
-	this.recordAndReplay( {
-		action:"playerPostedBigBlind",
-		name:this.seats[this.public.activeSeat].public.name,
-	});
-
 	var bet = this.seats[this.public.activeSeat].public.chipsInPlay >= this.public.bigBlind ? this.public.bigBlind : this.seats[this.public.activeSeat].public.chipsInPlay;
     this.seats[this.public.activeSeat].bet( bet );
-	this.log({
-		message: this.seats[this.public.activeSeat].public.name + ' posted the big blind',
-		action: 'bet',
-		seat: this.public.activeSeat,
-		notification: 'Posted blind'
-	});
 	this.public.biggestBet = this.public.biggestBet < bet ? bet : this.public.biggestBet;
-	this.emitEvent( 'table-data', this.public );
+	this.log(this.seats[this.public.activeSeat].public.name + ' posted the big blind',
+		'bigBlind', 'Posted blind');
 	this.initializePreflop();
 };
 
@@ -462,20 +434,9 @@ Table.prototype.playerPostedBigBlind = function() {
  * Checks if the round should continue after a player has folded
  */
 Table.prototype.playerFolded = function() {
-
-	this.recordAndReplay({
-		action:"playerFolded",
-		name:this.seats[this.public.activeSeat].public.name
-	});
-
 	this.seats[this.public.activeSeat].fold();
-	this.log({
-		message: this.seats[this.public.activeSeat].public.name + ' folded',
-		action: 'fold',
-		seat: this.public.activeSeat,
-		notification: 'Fold'
-	});
-	this.emitEvent( 'table-data', this.public );
+	this.log(this.seats[this.public.activeSeat].public.name + ' folded',
+		'fold', 'Fold');
 
 	this.playersInHandCount--;
 	this.pot.removePlayer( this.public.activeSeat );
@@ -497,20 +458,8 @@ Table.prototype.playerFolded = function() {
  * When a player checks
  */
 Table.prototype.playerChecked = function() {
-
-	this.recordAndReplay({
-		action:"playerChecked",
-		name:this.seats[this.public.activeSeat].public.name,
-	});
-
-	this.log({
-		message: this.seats[this.public.activeSeat].public.name + ' checked',
-		action: 'check',
-		seat: this.public.activeSeat,
-		notification: 'Check'
-	});
-
-	this.emitEvent( 'table-data', this.public );
+	this.log(this.seats[this.public.activeSeat].public.name + ' checked',
+		'check', 'Check');
 
 	if( this.lastPlayerToAct === this.public.activeSeat ) {
 		this.endPhase();
@@ -523,23 +472,11 @@ Table.prototype.playerChecked = function() {
  * When a player calls
  */
 Table.prototype.playerCalled = function() {
-
-	this.recordAndReplay({
-		action:"playerCalled",
-		name:this.seats[this.public.activeSeat].public.name,
-	});
-
 	var calledAmount = this.public.biggestBet - this.seats[this.public.activeSeat].public.bet;
 	this.seats[this.public.activeSeat].bet( calledAmount );
 
-	this.log({
-		message: this.seats[this.public.activeSeat].public.name + ' called',
-		action: 'call',
-		seat: this.public.activeSeat,
-		notification: 'Call'
-	});
-
-	this.emitEvent( 'table-data', this.public );
+	this.log(this.seats[this.public.activeSeat].public.name + ' called',
+		'call', 'Call');
 
 	if( this.lastPlayerToAct === this.public.activeSeat || this.otherPlayersAreAllIn() ) {
 		this.endPhase();
@@ -552,24 +489,11 @@ Table.prototype.playerCalled = function() {
  * When a player bets
  */
 Table.prototype.playerBetted = function( amount ) {
-
-	this.recordAndReplay({
-		action:"playerBetted",
-		name:this.seats[this.public.activeSeat].public.name,
-		amount:amount
-	});
-
 	this.seats[this.public.activeSeat].bet( amount );
 	this.public.biggestBet = this.public.biggestBet < this.seats[this.public.activeSeat].public.bet ? this.seats[this.public.activeSeat].public.bet : this.public.biggestBet;
 
-	this.log({
-		message: this.seats[this.public.activeSeat].public.name + ' betted ' + amount,
-		action: 'bet',
-		seat: this.public.activeSeat,
-		notification: 'Bet ' + amount
-	});
-
-	this.emitEvent( 'table-data', this.public );
+	this.log(this.seats[this.public.activeSeat].public.name + ' betted ' + amount,
+		'bet', 'Bet ' + amount);
 
 	var previousPlayerSeat = this.findPreviousPlayer();
 	if( previousPlayerSeat === this.public.activeSeat ) {
@@ -584,25 +508,12 @@ Table.prototype.playerBetted = function( amount ) {
  * When a player raises
  */
 Table.prototype.playerRaised = function( amount ) {
-    this.seats[this.public.activeSeat].raise( amount );
-
-	this.recordAndReplay({
-		action:"playerRaised",
-		name:this.seats[this.public.activeSeat].public.name,
-		amount:amount
-	});
-
 	this.seats[this.public.activeSeat].raise( amount );
 	var oldBiggestBet = this.public.biggestBet;
 	this.public.biggestBet = this.public.biggestBet < this.seats[this.public.activeSeat].public.bet ? this.seats[this.public.activeSeat].public.bet : this.public.biggestBet;
 	var raiseAmount = this.public.biggestBet - oldBiggestBet;
-	this.log({
-		message: this.seats[this.public.activeSeat].public.name + ' raised to ' + this.public.biggestBet,
-		action: 'raise',
-		seat: this.public.activeSeat,
-		notification: 'Raise ' + raiseAmount
-	});
-	this.emitEvent( 'table-data', this.public );
+	this.log(this.seats[this.public.activeSeat].public.name + ' raised to ' + this.public.biggestBet,
+		'raise', 'Raise ' + raiseAmount);
 
 	var previousPlayerSeat = this.findPreviousPlayer();
 	if( previousPlayerSeat === this.public.activeSeat ) {
@@ -620,13 +531,6 @@ Table.prototype.playerRaised = function( amount ) {
  */
 Table.prototype.playerSatOnTheTable = function( player, seat, chips ) {
 
-	this.recordAndReplay({
-		action:"playerSatOnTheTable",
-		name:player.public.name,
-		seat:seat,
-		chips:chips
-	});
-
 	this.seats[seat] = player;
 	this.public.seats[seat] = player.public;
 
@@ -643,19 +547,11 @@ Table.prototype.playerSatOnTheTable = function( player, seat, chips ) {
  * @param int seat
  */
 Table.prototype.playerSatIn = function( seat ) {
-	this.log({
-		message: this.seats[seat].public.name + ' sat in',
-		action: '',
-		seat: '',
-		notification: ''
-	});
-	this.emitEvent( 'table-data', this.public );
-
 	// The player is sitting in
 	this.seats[seat].public.sittingIn = true;
 	this.playersSittingInCount++;
-	
-	this.emitEvent( 'table-data', this.public );
+
+	this.log(this.seats[seat].public.name + ':sat in','sat', seat + ' ' + this.public.chipsInPlay, '');
 };
 
 /**
@@ -676,20 +572,6 @@ Table.prototype.startGame = function() {
  * @param int seat
  */
 Table.prototype.playerLeft = function( seat ) {
-
-	this.recordAndReplay({
-		action:"playerLeft",
-		seat:seat,
-		name:this.seats[seat].public.name,
-	});
-
-	this.log({
-		message: this.seats[seat].public.name + ' left',
-		action: '',
-		seat: '',
-		notification: ''
-	});
-
 	// If someone is really sitting on that seat
 	if( this.seats[seat].public.name ) {
 		var nextAction = '';
@@ -710,9 +592,9 @@ Table.prototype.playerLeft = function( seat ) {
 			this.public.dealerSeat = null;
 		}
 
+		this.log(this.seats[seat].public.name + ' left:' + seat, 'left');
+
 		this.seats[seat] = null;
-		this.emitEvent( 'table-data', this.public );
-		
 		if (!this.public.gameIsOn) {
 			return
 		}
@@ -740,13 +622,7 @@ Table.prototype.playerSatOut = function( seat, playerLeft ) {
 
 	// If the player didn't leave, log the action as "player sat out"
 	if( !playerLeft ) {
-		this.log({
-			message: this.seats[seat].public.name + ' sat out',
-			action: '',
-			seat: '',
-			notification: ''
-		});
-		this.emitEvent( 'table-data', this.public );
+		this.log(this.seats[seat].public.name + ' sat out');
 	}
 
 	// If the player had betted, add the bets to the pot
@@ -833,8 +709,10 @@ Table.prototype.endRound = function() {
 	// Sitting out the players who don't have chips
 	for( i=0 ; i<this.public.seatsCount ; i++ ) {
 		if( this.seats[i] !== null && this.seats[i].public.chipsInPlay <=0 && this.seats[i].public.sittingIn ) {
-			this.seats[i].sitOut();
-			this.playersSittingInCount--;
+			// this.sittingOnTable = false;
+			// this.seats[i].sitOut();
+			// this.playersSittingInCount--;
+			this.playerLeft(i);
 		}
 	}
 
@@ -863,9 +741,14 @@ Table.prototype.stopGame = function() {
 /**
  * Logs the last event
  */
-Table.prototype.log = function(log) {
-	this.public.log = null;
-	this.public.log = log;
+Table.prototype.log = function(message, action, notification, seat) {
+	this.public.log.message = message;
+	this.public.log.action = (action === 'undefined') ? '' : action;
+	this.public.log.seat = (seat === 'undefined') ? this.public.activeSeat : seat;
+	this.public.log.notification = (notification === 'undefined') ? '' : notification;
+
+	this.recordReplayEnabled && this.recordAndReplay(this.public.log);
+	this.emitEvent( 'table-data', this.public );
 }
 
 module.exports = Table;
