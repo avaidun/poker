@@ -268,7 +268,7 @@ Table.prototype.initializeBigBlind = function() {
 Table.prototype.initializePreflop = function() {
 	// Set the table phase to 'preflop'
 	this.public.phase = 'preflop';
-	var currentPlayer = this.public.activeSeat;
+	var currentPlayer = this.public.dealerSeat;
 	// The player that placed the big blind is the last player to act for the round
 	this.lastPlayerToAct = this.public.activeSeat;
 
@@ -478,7 +478,8 @@ Table.prototype.playerCalled = function() {
 	this.log(this.seats[this.public.activeSeat].public.name + ' called',
 		'call', 'Call');
 
-	if( this.lastPlayerToAct === this.public.activeSeat || this.otherPlayersAreAllIn() ) {
+    //if( this.lastPlayerToAct === this.public.activeSeat || this.otherPlayersAreAllIn() ) {
+	if( this.lastPlayerToAct === this.public.activeSeat ) {
 		this.endPhase();
 	} else {
 		this.actionToNextPlayer();
