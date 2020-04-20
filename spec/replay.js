@@ -23,7 +23,7 @@ var socket = {
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 10, 5, 500, 50, false, 3000000, 10);
 
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/CrashApr12_12_30.rr');
+    const fileStream = fs.createReadStream('../rrevents/Table2020-04-20T06-16.rr');
 
     const rl = readline.createInterface({
         input: fileStream,
@@ -38,16 +38,10 @@ async function processLineByLine() {
         rec = JSON.parse(str);
         console.log(`Line from file: ${str}` + " dealer " + table.public.dealerSeat + " Active " + table.public.activeSeat);
         switch (rec.action) {
-            case "startGame": // set the dealer seat and deck else it is randomized and will not be a true replay.
+            case 'gameStarted': // set the dealer seat and deck else it is randomized and will not be a true replay.
                 table.public.dealerSeat = rec.dealerSeat;
                 table.initializeRound(false);
                 table.deck.cards = rec.cards;
-                break;
-            case 'smallBlind':
-                table.playerPostedSmallBlind();
-                break;
-            case 'bigBlind':
-                table.playerPostedBigBlind();
                 break;
             case 'fold':
                 table.playerFolded();

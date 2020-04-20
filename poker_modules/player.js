@@ -29,7 +29,7 @@ var Player = function( socket, name, chips ) {
 	// The room that send the table events to the player
 	this.room = null;
 	// Is set to false if the player is not sitting on any tables, otherwise it's set to the table id
-	this.sittingOnTable = false;
+	this.sittingOnTable = null;
 	// The number of the seat of the table that the player is sitting
 	this.seat = null;
 	// The cards that the player is holding
@@ -38,20 +38,20 @@ var Player = function( socket, name, chips ) {
 	this.evaluatedHand = {};
 }
 
-/**
- * Updates the player data when they leave the table
- */
-Player.prototype.leaveTable = function() {
-	if( this.sittingOnTable !== false ) {
-		this.sitOut();
-		// Remove the chips from play
-		this.chips += this.public.chipsInPlay;
-		this.public.chipsInPlay = 0;
-		// Remove the player from the table
-		this.sittingOnTable = false;
-		this.seat = null;
-	}
-}
+Player.prototype.playerLeft = function() {
+    // If someone is really sitting on that seat
+    if(this.public.name) {
+        if( this.sittingOnTable !== false ) {
+            // Remove the chips from play
+            this.chips += this.public.chipsInPlay;
+            this.public.chipsInPlay = 0;
+            // Remove the player from the table
+            this.sittingOnTable.removePlayer(this, seat);
+            this.sittingOnTable = false;
+            this.seat = null;
+        }
+    }
+};
 
 /**
  * Sits the player on the table
@@ -67,18 +67,15 @@ Player.prototype.sitOnTable = function( tableId, seat, chips ) {
     // Add the table info in the player object
     this.seat = seat;
     this.sittingOnTable = tableId;
+    this.public.sittingIn = true;
 }
 
-/**
- * Updates the player data when they sit out
- */
-Player.prototype.sitOut = function() {
-	if( this.sittingOnTable !== false ) {
-		this.public.sittingIn = false;
-		this.public.inHand = false;
-	}
+Player.prototype.getCards = function(table) {
+    this.cards[0] = table.deck.getCard();
+    this.cards[1] = table.deck.getCard();
+    this.public.hasCards = true;
+    this.socket.emit('dealingCards', this.cards);
 }
-
 /**
  * The action of folding the hand
  */
@@ -90,29 +87,32 @@ Player.prototype.fold = function() {
 }
 
 /**
- * The action of betting
+ * The action of betting. Update the table's biggest bet and number of players allin.
  * @param number amount
  */
-Player.prototype.bet = function( amount ) {
+Player.prototype.bet = function( tp, amount ) {
     amount = parseInt(amount);
     if( amount > this.public.chipsInPlay ) {
         amount = this.public.chipsInPlay;
     }
     this.public.chipsInPlay -= amount;
     this.public.bet += +amount;
+
+    tp.biggestBet = tp.biggestBet < amount ? amount : tp.biggestBet;
+    tp.playersAllIn += this.public.chipsInPlay == 0 ? 1 : 0;
 }
 
 /**
- * The action of raising
+ * Add winnings. If the player had gone all in and won return 1.
  * @param number amount
  */
-Player.prototype.raise = function( amount ) {
-    amount = parseInt(amount);
-    if( amount > this.public.chipsInPlay ) {
-        amount = this.public.chipsInPlay;
-    }
-    this.public.chipsInPlay -= amount;
-    this.public.bet += +amount;
+Player.prototype.wins = function(amount) {
+    this.public.chipsInPlay += amount;
+    return (this.public.chipsInPlay == amount ? 1 : 0);
+}
+
+Player.prototype.inHand = function(checkHasChips) {
+    return (this.public.inHand && (!checkHasChips || this.public.chipsInPlay > 0));
 }
 
 /**
@@ -125,6 +125,7 @@ Player.prototype.prepareForNewRound = function() {
     this.public.bet = 0;
     this.public.inHand = true;
     this.evaluatedHand = {};
+    return (this.public.chipsInPlay != 0);
 }
 
 /**

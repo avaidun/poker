@@ -3,7 +3,7 @@
  */
 var Deck = function() {
 	this.nextCard = 0;
-  this.cards = ['As', 'Ah', 'Ad', 'Ac',
+	this.cards = ['As', 'Ah', 'Ad', 'Ac',
                 'Ks', 'Kh', 'Kd', 'Kc',
                 'Qs', 'Qh', 'Qd', 'Qc',
                 'Js', 'Jh', 'Jd', 'Jc',
@@ -32,13 +32,9 @@ Deck.prototype.shuffle = function(){
 };
 
 // Method that returns the next x cards of the deck
-Deck.prototype.deal = function( numberOfCards ) {
-  var dealtCards = [];
-  for( var i=0 ; i<numberOfCards && this.nextCard<52 ; i++ ) {
-    dealtCards.push( this.cards[this.nextCard] );
-    this.nextCard++;
-  }
-  return dealtCards;
+Deck.prototype.getCard = function() {
+    // nextCard would max 2*10 + 5.
+    return(this.cards[this.nextCard++]);
 };
 
 module.exports = Deck;

@@ -46,12 +46,8 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.minBetAmount = function() {
 		if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] === null ) return 0;
 		// If the pot was raised
-		if( $scope.actionState === "actBettedPot" ) {
-			var proposedBet = +$scope.table.biggestBet + $scope.table.bigBlind;
-			return $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
-		} else {
-			return $scope.table.seats[$scope.mySeat].chipsInPlay < $scope.table.bigBlind ? $scope.table.seats[$scope.mySeat].chipsInPlay : $scope.table.bigBlind;
-		}
+		var proposedBet = +$scope.table.biggestBet + $scope.table.bigBlind;
+		return $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
 	}
 
 	$scope.maxBetAmount = function() {
@@ -59,7 +55,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
         // Since the slider only goes in steps of minBet, if the chipsInPlay is not a multiple of minBet, the slider won't select all chips to go all-in
         // So increase the slider range by minBet. The value is checked in bet() and raise() functions to ensure we are not bidding more than the player's stash
-        var val = $scope.actionState === "actBettedPot" ? $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet : $scope.table.seats[$scope.mySeat].chipsInPlay;
+        var val = $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet;
         if ((val % $scope.table.minBet) !== 0) {
             val += $scope.table.minBet;
         }
@@ -72,44 +68,9 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		return callAmount > $scope.table.seats[$scope.mySeat].chipsInPlay ? $scope.table.seats[$scope.mySeat].chipsInPlay : callAmount;
 	}
 
-	$scope.showLeaveTableButton = function() {
+	//TODO handle auto fold
+	$scope.showAutoFoldButton = function() {
 		return $rootScope.sittingOnTable !== null && ( !$rootScope.sittingIn || $scope.actionState === "waiting" );
-	}
-
-	$scope.showPostSmallBlindButton = function() {
-		return $scope.actionState === "actNotBettedPot" || $scope.actionState === "actBettedPot";
-	}
-
-	$scope.showPostBigBlindButton = function() {
-		return $scope.actionState === "actNotBettedPot" || $scope.actionState === "actBettedPot";
-	}
-
-	$scope.showFoldButton = function() {
-		return $scope.actionState === "actNotBettedPot" || $scope.actionState === "actBettedPot" || $scope.actionState === "actOthersAllIn";
-	}
-
-	$scope.showCheckButton = function() {
-		return $scope.actionState === "actNotBettedPot" || ( $scope.actionState === "actBettedPot" && $scope.table.biggestBet == $scope.table.seats[$scope.mySeat].bet );
-	}
-
-	$scope.showCallButton = function() {
-		return $scope.actionState === "actOthersAllIn" || $scope.actionState === "actBettedPot"  && !( $scope.actionState === "actBettedPot" && $scope.table.biggestBet == $scope.table.seats[$scope.mySeat].bet );
-	}
-
-	$scope.showBetButton = function() {
-		return $scope.actionState === "actNotBettedPot" && $scope.table.seats[$scope.mySeat].chipsInPlay && $scope.table.biggestBet < $scope.table.seats[$scope.mySeat].chipsInPlay;
-	}
-
-	$scope.showRaiseButton = function() {
-		return $scope.actionState === "actBettedPot" && $scope.table.seats[$scope.mySeat].chipsInPlay && $scope.table.biggestBet < $scope.table.seats[$scope.mySeat].chipsInPlay;
-	}
-
-	$scope.showBetRange = function() {
-		return ($scope.actionState === "actNotBettedPot" || $scope.actionState === "actBettedPot") && $scope.table.seats[$scope.mySeat].chipsInPlay && $scope.table.biggestBet < $scope.table.seats[$scope.mySeat].chipsInPlay;
-	}
-
-	$scope.showBetInput = function() {
-		return ($scope.actionState === "actNotBettedPot" || $scope.actionState === "actBettedPot")  && $scope.table.seats[$scope.mySeat].chipsInPlay && $scope.table.biggestBet < $scope.table.seats[$scope.mySeat].chipsInPlay;
 	}
 
 	$scope.showBuyInModal = function( seat ) {
@@ -174,43 +135,19 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		});
 	}
 
-	// Sit in the game
-	$scope.sitIn = function() {
-        $scope.clearDefaultActionTimer();
-		socket.emit( 'sitIn', function( response ) {
-			if( response.success ) {
-				$rootScope.sittingIn = true;
-				$rootScope.$digest();
-			}
-		});
-	}
-
 	// Leave the table (not the room)
-	$scope.leaveTable = function() {
+	//TODO handle auto fold
+	$scope.autoFold = function() {
         $scope.clearDefaultActionTimer();
-		socket.emit( 'leaveTable', function( response ) {
+		socket.emit( 'autoFold', function( response ) {
 			if( response.success ) {
 				$rootScope.sittingOnTable = null;
 				$rootScope.totalChips = response.totalChips;
 				$rootScope.sittingIn = false;
-				$scope.actionState = '';
+				$scope.setButtons('');
 				$rootScope.$digest();
 				$scope.$digest();
 			}
-		});
-	}
-
-	// Post a blind (or not)
-	$scope.postBlind = function( posted ) {
-        $scope.clearDefaultActionTimer();
-		socket.emit( 'postBlind', posted, function( response ) {
-			if( response.success && !posted ) {
-				$rootScope.sittingIn = false;
-			} else {
-				sounds.playBetSound();
-			}
-			$scope.actionState = '';
-			$scope.$digest();
 		});
 	}
 
@@ -219,7 +156,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		socket.emit( 'check', function( response ) {
 			if( response.success ) {
 				sounds.playCheckSound();
-				$scope.actionState = '';
+				$scope.setButtons('');
 				$scope.$digest();
 			}
 		});
@@ -230,7 +167,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		socket.emit( 'fold', function( response ) {
 			if( response.success ) {
 				sounds.playFoldSound();
-				$scope.actionState = '';
+				$scope.setButtons('');
 				$scope.$digest();
 			}
 		});
@@ -241,7 +178,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		socket.emit( 'call', function( response ) {
 			if( response.success ) {
 				sounds.playCallSound();
-				$scope.actionState = '';
+				$scope.setButtons('');
 				$scope.$digest();
 			}
 		});
@@ -253,7 +190,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		socket.emit( 'bet', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playBetSound();
-				$scope.actionState = '';
+				$scope.setButtons('');
 				$scope.$digest();
 			}
 		});
@@ -265,7 +202,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		socket.emit( 'raise', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playRaiseSound();
-				$scope.actionState = '';
+				$scope.setButtons('');
 				$scope.$digest();
 			}
 		});
@@ -284,7 +221,15 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 			}
 		})
     }
-    
+
+	$scope.setButtons = function( buttons ) {
+		$scope.showFold = buttons.contains('Fold');
+		$scope.showCheck = buttons.contains('Check');
+		$scope.showBet = buttons.contains('Bet');
+		$scope.showCall = buttons.contains('Call');
+		$scope.showRaise = buttons.contains('Raise');
+	}
+
     /*
      * Default action timer - if a player does not respond for a whiile, take 
      * the default action on their behalf
@@ -307,14 +252,11 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
     // handler for when the default action timer expires
     $scope.triggerDefaultAction = function() {
         $scope.clearDefaultActionTimer();
-
-        if ($scope.actionState == 'actBettedPot') {
+        if ($scope.table.biggestBet > $scope.table.seats[$scope.mySeat].bet) {
             $scope.fold();
-        } else if ($scope.actionState == 'actNotBettedPot') {
-            $scope.check();
-        } else if ($scope.actionState == 'actOthersAllIn') {
-            // TBD: not sure if we need to fold or check 
-        }
+        } else {
+			$scope.check();
+		}
     }
 
 
@@ -373,22 +315,6 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		$scope.$digest();
 	});
 
-	// When the player is asked to place the small blind
-	socket.on( 'postSmallBlind', function( data ) {
-		$scope.actionState = 'postSmallBlind';
-		 // automatically post small blind without displaying button
-		$scope.postBlind (true);
-		$scope.$digest();
-	});
-
-	// When the player is asked to place the big blind
-	socket.on( 'postBigBlind', function( data ) {
-		$scope.actionState = 'postBigBlind';
-		// automatically post big blind without displaying button
-		$scope.postBlind (true);
-		$scope.$digest();
-	});
-
 	// When the player is dealt cards
 	socket.on( 'dealingCards', function( cards ) {
 		$scope.myCards[0] = 'pokercard-'+cards[0];
@@ -396,32 +322,12 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		$scope.$digest();
 	});
 
-	// When the user is asked to act and the pot was betted
-	socket.on( 'actBettedPot', function() {
-		$scope.actionState = 'actBettedPot';
+	// When the user is asked to act and the pot was not betted
+	socket.on( 'showButtons', function( buttons ) {
+		$scope.setButtons(buttons);
 
 		var proposedBet = +$scope.table.biggestBet + $scope.table.bigBlind;
-        $scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
-        
-        $scope.startDefaultActionTimer();
-
-		$scope.$digest();
-	});
-
-	// When the user is asked to act and the pot was not betted
-	socket.on( 'actNotBettedPot', function() {
-		$scope.actionState = 'actNotBettedPot';
-
-        $scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < $scope.table.bigBlind ? $scope.table.seats[$scope.mySeat].chipsInPlay : $scope.table.bigBlind;
-        
-        $scope.startDefaultActionTimer();
-
-		$scope.$digest();
-	});
-
-	// When the user is asked to call an all in
-	socket.on( 'actOthersAllIn', function() {
-        $scope.actionState = 'actOthersAllIn';
+		$scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
         
         $scope.startDefaultActionTimer();
 
@@ -429,7 +335,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	});
 
 	//When game has started
-	socket.on('startGame', function() {
+	socket.on('gameStarted', function() {
 		$scope.gameIsOn = true;
 		$scope.$digest();
 	})

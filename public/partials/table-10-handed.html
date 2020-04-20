@@ -91,27 +91,22 @@
 		-->
 		<!-- <div class="cell">
 			<button class="control-button" ng-click="startGame()" ng-disabled="playerCount < 2" ng-show="!gameStarted">Start Game</button>
+			<button class="control-button" ng-click="autoFold()" ng-show="!showFold">Auto Fold</button>
 		</div> -->
 		<div class="cell">
 			<button class="control-button" ng-click="startGame()" ng-disabled="playerCount < 2" ng-show="!gameIsOn">Start Game</button>
-			<button class="control-button" ng-click="fold()" ng-show="showFoldButton()">Fold</button>
-			<!--Give no option to Sit Out-->
-			<!--<button class="control-button" ng-click="postBlind(false)" ng-show="actionState === 'postSmallBlind' || actionState === 'postBigBlind'">Sit Out</button>-->
-			<!-- <button class="control-button" ng-click="leaveTable()" ng-show="showLeaveTableButton()">Leave Table</button> -->
+			<button class="control-button" ng-click="fold()" ng-show="showFold">Fold</button>
+
 		</div>
 		<div class="cell">
-			<button class="control-button" ng-click="leaveTable()" ng-show="showLeaveTableButton()">Leave Table</button>
-			<button class="control-button" ng-click="sitIn()" ng-show="$root.sittingOnTable !== null && !$root.sittingIn">Sit In</button>
-			<button class="control-button" ng-click="postBlind(true)" ng-show="actionState === 'postSmallBlind'">Small Blind ({{table.smallBlind}})</button>
-			<button class="control-button" ng-click="postBlind(true)" ng-show="actionState === 'postBigBlind'">Big Blind ({{table.bigBlind}})</button>
-			<button class="control-button" ng-click="check()" ng-show="showCheckButton()">Check</button>
-			<button class="control-button" ng-click="call()" ng-show="showCallButton()">Call {{callAmount()}}</button>
+			<button class="control-button" ng-click="check()" ng-show="showCheck">Check</button>
+			<button class="control-button" ng-click="call()" ng-show="showCall">Call {{callAmount()}}</button>
 		</div>
 		<div class="cell">
-			<button class="control-button" ng-click="bet()" ng-show="showBetButton()">Bet {{betAmount}}</button>
-			<button class="control-button" ng-click="raise()" ng-show="showRaiseButton()">Raise to {{betAmount}}</button>
+			<button class="control-button" ng-click="bet()" ng-show="showBet">Bet {{betAmount}}</button>
+			<button class="control-button" ng-click="raise()" ng-show="showRaise">Raise to {{betAmount}}</button>
 		</div>
-		<div class="slider-div" ng-show="showBetRange()">
+		<div class="slider-div" ng-show="showRaise">
 			<div class="raise-label">
 				Raise
 			</div>

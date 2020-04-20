@@ -95,7 +95,7 @@ Pot.prototype.distributeToWinners = function (players, firstPlayerToAct) {
       }
 
       if( winners.length === 1 ) {
-        winners[0].public.chipsInPlay += pot.amount;
+        winners[0].wins(pot.amount);
         var htmlHand = '[' + winners[0].evaluatedHand.cards.join(', ') + ']';
         htmlHand = htmlHand.replace(/s/g, '&#9824;').replace(/c/g, '&#9827;').replace(/h/g, '&#9829;').replace(/d/g, '&#9830;');
         messages.push(winners[0].public.name + ' wins the pot (' + pot.amount + ') with ' + winners[0].evaluatedHand.name + ' ' + htmlHand );
@@ -104,8 +104,8 @@ Pot.prototype.distributeToWinners = function (players, firstPlayerToAct) {
         var oddChip = pot.amount - (winnings * winners.length)
 
         var htmlHand = '';
-        for (var j in winners) { 
-            players[winners[j].seat].public.chipsInPlay += (winnings + (j === 0 ? oddChip : 0));
+        for (var j in winners) {
+            players[winners[j].seat].wins(winnings + (j === 0 ? oddChip : 0));
             htmlHand += '[' + players[winners[j].seat].evaluatedHand.cards.join(', ') + '] ';
         }
         htmlHand = htmlHand.replace(/s/g, '&#9824;').replace(/c/g, '&#9827;').replace(/h/g, '&#9829;').replace(/d/g, '&#9830;');
@@ -129,7 +129,7 @@ Pot.prototype.giveToWinner = function( winner ) {
   var totalAmount = 0;
 
   for( var i=potsCount-1 ; i>=0 ; i-- ) {
-    winner.public.chipsInPlay += this.pots[i].amount;
+    winner.wins(this.pots[i].amount);
     totalAmount += this.pots[i].amount;
   }
 
