@@ -199,7 +199,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.raise = function() {
         $scope.clearDefaultActionTimer();
 		$scope.betAmount = Math.min($scope.betAmount, $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet);
-		socket.emit( 'raise', $scope.betAmount, function( response ) {
+		socket.emit( 'bet', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playRaiseSound();
 				$scope.setButtons('');
@@ -223,11 +223,11 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
     }
 
 	$scope.setButtons = function( buttons ) {
-		$scope.showFold = buttons.contains('Fold');
-		$scope.showCheck = buttons.contains('Check');
-		$scope.showBet = buttons.contains('Bet');
-		$scope.showCall = buttons.contains('Call');
-		$scope.showRaise = buttons.contains('Raise');
+		$scope.showFold = buttons.includes('Fold');
+		$scope.showCheck = buttons.includes('Check');
+		$scope.showBet = buttons.includes('Bet');
+		$scope.showCall = buttons.includes('Call');
+		$scope.showRaise = buttons.includes('Raise');
 	}
 
     /*
@@ -325,7 +325,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	// When the user is asked to act and the pot was not betted
 	socket.on( 'showButtons', function( buttons ) {
 		$scope.setButtons(buttons);
-
+		console.log(buttons);
 		var proposedBet = +$scope.table.biggestBet + $scope.table.bigBlind;
 		$scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
         

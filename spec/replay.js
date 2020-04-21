@@ -23,7 +23,7 @@ var socket = {
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 10, 5, 500, 50, false, 3000000, 10);
 
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/Table2020-04-20T06-16.rr');
+    const fileStream = fs.createReadStream('../rrevents/Table2020-04-21T00-38.rr');
 
     const rl = readline.createInterface({
         input: fileStream,
@@ -50,22 +50,24 @@ async function processLineByLine() {
                 table.playerChecked();
                 break;
             case 'call':
-                table.playerCalled();
+                table.playerBet(0)
+                table.playerChecked();
                 break;
             case 'bet':
-                table.playerBetted(parseInt(rec.notification.split(' ')[1]));
+                table.playerBet(parseInt(rec.notification.split(' ')[1]));
                 break;
             case 'raise':
-                table.playerRaised(parseInt(rec.notification.split(' ')[1]));
+                table.playerBet(parseInt(rec.notification.split(' ')[1]));
                 break;
             case 'sat':
-                seat = parseInt(rec.notification.split(' ')[0]);
-                chips = parseInt(rec.notification.split(' ')[1]);
-                players[seat] = new Player( socket, rec.message.split(':')[0], chips );
+                var msg = rec.message.split(':');
+                var seat = parseInt(msg[2]);
+                var chips = parseInt(msg[3]);
+                players[seat] = new Player( socket,msg[0], chips );
                 table.playerSatOnTheTable(players[seat], seat, chips );
                 break;
             case 'left':
-                seat = parseInt(rec.message.split(':')[1]);
+                var seat = parseInt(rec.message.split(':')[1]);
                 table.playerLeft(seat);
                 players[seat] = null;
                 break;

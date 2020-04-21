@@ -46,8 +46,8 @@ Player.prototype.playerLeft = function() {
             this.chips += this.public.chipsInPlay;
             this.public.chipsInPlay = 0;
             // Remove the player from the table
-            this.sittingOnTable.removePlayer(this, seat);
-            this.sittingOnTable = false;
+            this.sittingOnTable.removePlayer(this, this.seat);
+            this.sittingOnTable = null;
             this.seat = null;
         }
     }
@@ -59,14 +59,14 @@ Player.prototype.playerLeft = function() {
  * @param  number   seat    
  * @param  number   chips   
  */
-Player.prototype.sitOnTable = function( tableId, seat, chips ) {
+Player.prototype.sitOnTable = function( table, seat, chips ) {
     // Remove the chips that player will have on the table, from the player object
     chips = parseInt(chips);
     this.chips -= chips;
     this.public.chipsInPlay = chips;
     // Add the table info in the player object
     this.seat = seat;
-    this.sittingOnTable = tableId;
+    this.sittingOnTable = table;
     this.public.sittingIn = true;
 }
 
@@ -91,12 +91,12 @@ Player.prototype.fold = function() {
  * @param number amount
  */
 Player.prototype.bet = function( tp, amount ) {
-    amount = parseInt(amount);
+    //amount = parseInt(amount);
     if( amount > this.public.chipsInPlay ) {
         amount = this.public.chipsInPlay;
     }
     this.public.chipsInPlay -= amount;
-    this.public.bet += +amount;
+    this.public.bet += amount;
 
     tp.biggestBet = tp.biggestBet < amount ? amount : tp.biggestBet;
     tp.playersAllIn += this.public.chipsInPlay == 0 ? 1 : 0;

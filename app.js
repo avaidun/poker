@@ -232,9 +232,9 @@ io.sockets.on('connection', function( socket ) {
 	socket.on('check', function(callback){
 		var table = getTable(socket);
 		var player = players[socket.id];
-		if (table && player && table.public.biggestBet === player.bet) {
+		if (table && player && table.public.biggestBet === player.public.bet) {
 			callback( { 'success': true } );
-			table.playerChecked(player);
+			table.playerChecked();
 		}
 	});
 
@@ -246,7 +246,7 @@ io.sockets.on('connection', function( socket ) {
 		if (table = getTable(socket)) {
 			// Sending the callback first, because the next functions may need to send data to the same player, that shouldn't be overwritten
 			callback({'success': true});
-			table.playerFolded(table.seats[table.public.activeSeat]);
+			table.playerFolded();
 		}
 	});
 
@@ -257,7 +257,7 @@ io.sockets.on('connection', function( socket ) {
 	socket.on('call', function( callback ){
 		if (table = getTable(socket)) {
 			callback({'success': true});
-			table.playerBet(table.seats[table.public.activeSeat], 0);
+			table.playerBet(0);
 		}
 	});
 
@@ -274,30 +274,7 @@ io.sockets.on('connection', function( socket ) {
 			if (amount && isFinite(amount) && amount <= player.public.chipsInPlay) {
 				// Sending the callback first, because the next functions may need to send data to the same player, that shouldn't be overwritten
 				callback({'success': true});
-				table.playerBet(player, amount);
-			}
-		}
-	});
-
-	/**
-	 * When a player raises
-	 * @param function callback
-	 */
-	socket.on('raise', function( amount, callback ){
-		if (table = getTable(socket)) {
-			// Not every other player is all in (in which case the only move is "call")
-			if (!table.otherPlayersAreAllIn()) {
-				var player = table.seats[table.public.activeSeat];
-				amount = parseInt( amount );
-				if ( amount && isFinite( amount ) ) {
-					amount -= player.public.bet;
-					if( amount <= player.public.chipsInPlay ) {
-						// Sending the callback first, because the next functions may need to send data to the same player, that shouldn't be overwritten
-						callback( { 'success': true } );
-						// The amount should not include amounts previously betted
-						table.playerRaised(player, amount);
-					}
-				}
+				table.playerBet(amount);
 			}
 		}
 	});
