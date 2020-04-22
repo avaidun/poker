@@ -82,12 +82,16 @@ io.sockets.on('connection', function( socket ) {
 	 * When a player enters a room
 	 * @param object table-data
 	 */
-	socket.on('enterRoom', function( tableId ) {
-		if( typeof players[socket.id] !== 'undefined' && players[socket.id].room === null ) {
-			// Add the player to the socket room
-			socket.join( 'table-' + tableId );
-			// Add the room to the player's data
-			players[socket.id].room = tableId;
+	socket.on('enterRoom', function( tableId, callback ) {
+		if( typeof players[socket.id] !== 'undefined') {
+			if (players[socket.id].room === null) {
+				// Add the player to the socket room
+				socket.join('table-' + tableId);
+				// Add the room to the player's data
+				players[socket.id].room = tableId;
+			} else {
+				callback( { 'success': true, buttons: players[socket.id].buttons } );
+			}
 		}
 	});
 

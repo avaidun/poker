@@ -228,17 +228,14 @@ Table.prototype.initializeRound = function() {
 		cards: this.deck.cards,
 		players: this.public.seats
 	});
-	this.public.phase = 'gameStarted';
-
 
 	var currentPlayer = this.public.dealerSeat;
 	for( var i=0 ; i<this.playersInHandCount ; i++ ) {
 		this.seats[currentPlayer].getCards(this);
 		currentPlayer = this.findNextPlayer( currentPlayer );
 	}
-
-	this.actionToNextPlayer(this.public.activeSeat);
 	this.public.phase = 'preflop';
+	this.actionToNextPlayer(this.public.activeSeat);
 }
 
 
@@ -249,7 +246,7 @@ Table.prototype.actionToNextPlayer = function(seat) {
 	start = (seat !== undefined)  ? seat : this.public.activeSeat;
 	nextPlayer = this.findNextPlayer(start, true);
 
-	if (this.public.phase != 'gameStarted' &&
+	if (seat === undefined && // new phase just started don't check for last player
 		(this.lastPlayerToAct === this.public.activeSeat // last player to act
 		|| nextPlayer == null)) { //no player has money left
 		this.endPhase();
@@ -258,9 +255,10 @@ Table.prototype.actionToNextPlayer = function(seat) {
 
 	this.public.activeSeat = nextPlayer;
 	player = this.seats[this.public.activeSeat];
+	buttons = (this.public.biggestBet != player.public.bet) ? (this.public.playersSeatedCount - this.playersAllIn == 1) ? 'Fold:Call' : 'Fold:Call:Raise' : 'Fold:Check:Raise'
+	player.sendButtons(this.public, buttons);
 
-	str = (this.public.biggestBet != player.public.bet) ? (this.public.playersSeatedCount - this.playersAllIn == 1) ? 'Fold:Call' : 'Fold:Call:Raise' : 'Fold:Check:Bet'
-	player.socket.emit('showButtons', str);
+
 	this.emitEvent( 'table-data', this.public );
 }
 
@@ -373,11 +371,8 @@ Table.prototype.playerBet = function(amount) {
 		this.log(pp.name + ' called', 'call', 'Call');
 	} else {
 		player.bet(this.public, amount);
-		if (this.public.biggestBet < pp.bet) {
-			this.log(pp.name + ' raised to ' + amount, 'bet', 'Bet ' + amount);
-			this.public.biggestBet = pp.bet;
-			this.lastPlayerToAct = this.findPreviousPlayer();
-		}
+		this.log(pp.name + ' raised to ' + amount, 'bet', 'Raised to ' + amount);
+		this.lastPlayerToAct = this.findPreviousPlayer();
 	}
 	this.actionToNextPlayer();
 };

@@ -100,17 +100,16 @@
 		</div>
 		<div class="cell">
 			<button class="control-button" ng-click="check()" ng-show="showCheck">Check</button>
-			<button class="control-button" ng-click="call()" ng-show="showCall">Call {{callAmount()}}</button>
+			<button class="control-button" ng-click="call()" ng-show="showCall">Call {{callAmount}}</button>
 		</div>
 		<div class="cell">
-			<button class="control-button" ng-click="bet()" ng-show="showBet">Bet {{betAmount}}</button>
 			<button class="control-button" ng-click="raise()" ng-show="showRaise">Raise to {{betAmount}}</button>
 		</div>
 		<div class="slider-div" ng-show="showRaise">
 			<div class="raise-label">
 				Raise
 			</div>
-			<input id="raise-slider" class="raise-slider" type="range" min="{{minBetAmount()}}" max="{{maxBetAmount()}}" ng-model="betAmount" step="{{table.minBet}}" >
+			<input id="raise-slider" class="raise-slider" type="range" min="{{minRaise}}" max="{{maxRaise}}" ng-model="betAmount" step="{{table.minBet}}" >
 		</div>
 	</div>
 	<div id="zoom">

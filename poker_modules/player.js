@@ -22,6 +22,7 @@ var Player = function( socket, name, chips ) {
         // The amount the player has betted in the current round
         bet: 0
 	};
+	this.buttons = '';
 	// The socket object of the user
 	this.socket = socket;
 	// The chips that are available in the user's account
@@ -52,6 +53,27 @@ Player.prototype.playerLeft = function() {
         }
     }
 };
+
+Player.prototype.sendButtons = function(tp, str) {
+    this.buttons = str;
+    var proposedBet = tp.biggestBet + tp.bigBlind;
+
+    var callAmount = tp.biggestBet - this.public.bet;
+    if (callAmount > this.public.chipsInPlay) {
+        callAmount =  this.public.chipsInPlay;
+    }
+
+    var minBet = (callAmount > 0) ? callAmount : this.public.chipsInPlay < proposedBet ? this.public.chipsInPlay : proposedBet;
+
+    var maxBet = this.public.chipsInPlay + this.public.bet;
+    // Since the slider only goes in steps of minBet, if the chipsInPlay is not a multiple of minBet, the slider won't select all chips to go all-in
+    // So increase the slider range by minBet. The value is checked in bet() and raise() functions to ensure we are not bidding more than the player's stash
+    if ((maxBet % tp.minBet) !== 0) {
+        maxBet += tp.minBet;
+    }
+
+    this.socket.emit('showButtons', str, callAmount, minBet, maxBet);
+}
 
 /**
  * Sits the player on the table

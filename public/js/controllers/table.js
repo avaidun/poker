@@ -37,35 +37,14 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	});
 
 	// Joining the socket room
-	socket.emit( 'enterRoom', $routeParams.tableId );
+	socket.emit( 'enterRoom', $routeParams.tableId, function( response ) {
+		if( response.success ){
+			$scope.setButtons(response.buttons);
+		}
+	});
 
 	$scope.isURLBlank = function() {
 		return ($scope.url === "");
-	}
-
-	$scope.minBetAmount = function() {
-		if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] === null ) return 0;
-		// If the pot was raised
-		var proposedBet = +$scope.table.biggestBet + $scope.table.bigBlind;
-		return $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
-	}
-
-	$scope.maxBetAmount = function() {
-        if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] === null ) return 0;
-
-        // Since the slider only goes in steps of minBet, if the chipsInPlay is not a multiple of minBet, the slider won't select all chips to go all-in
-        // So increase the slider range by minBet. The value is checked in bet() and raise() functions to ensure we are not bidding more than the player's stash
-        var val = $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet;
-        if ((val % $scope.table.minBet) !== 0) {
-            val += $scope.table.minBet;
-        }
-        return (val);
-    }
-
-	$scope.callAmount = function() {
-		if( $scope.mySeat === null || typeof $scope.table.seats[$scope.mySeat] === 'undefined' || $scope.table.seats[$scope.mySeat] == null ) return 0;
-		var callAmount = +$scope.table.biggestBet - $scope.table.seats[$scope.mySeat].bet;
-		return callAmount > $scope.table.seats[$scope.mySeat].chipsInPlay ? $scope.table.seats[$scope.mySeat].chipsInPlay : callAmount;
 	}
 
 	//TODO handle auto fold
@@ -186,7 +165,6 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	$scope.bet = function() {
         $scope.clearDefaultActionTimer();
-        $scope.betAmount = Math.min($scope.betAmount, $scope.table.seats[$scope.mySeat].chipsInPlay);
 		socket.emit( 'bet', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playBetSound();
@@ -198,7 +176,6 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	$scope.raise = function() {
         $scope.clearDefaultActionTimer();
-		$scope.betAmount = Math.min($scope.betAmount, $scope.table.seats[$scope.mySeat].chipsInPlay + $scope.table.seats[$scope.mySeat].bet);
 		socket.emit( 'bet', $scope.betAmount, function( response ) {
 			if( response.success ) {
 				sounds.playRaiseSound();
@@ -225,7 +202,6 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.setButtons = function( buttons ) {
 		$scope.showFold = buttons.includes('Fold');
 		$scope.showCheck = buttons.includes('Check');
-		$scope.showBet = buttons.includes('Bet');
 		$scope.showCall = buttons.includes('Call');
 		$scope.showRaise = buttons.includes('Raise');
 	}
@@ -323,12 +299,13 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	});
 
 	// When the user is asked to act and the pot was not betted
-	socket.on( 'showButtons', function( buttons ) {
+	socket.on( 'showButtons', function(buttons, callAmount, minRaise, maxRaise ) {
 		$scope.setButtons(buttons);
 		console.log(buttons);
-		var proposedBet = +$scope.table.biggestBet + $scope.table.bigBlind;
-		$scope.betAmount = $scope.table.seats[$scope.mySeat].chipsInPlay < proposedBet ? $scope.table.seats[$scope.mySeat].chipsInPlay : proposedBet;
-        
+		$scope.callAmount = callAmount;
+		$scope.betAmount = minRaise;
+        $scope.minRaise = minRaise;
+        $scope.maxRaise = maxRaise;
         $scope.startDefaultActionTimer();
 
 		$scope.$digest();
