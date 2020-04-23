@@ -54,25 +54,20 @@ Player.prototype.playerLeft = function() {
     }
 };
 
-Player.prototype.sendButtons = function(tp, str) {
+Player.prototype.sendButtons = function(str) {
     this.buttons = str;
-    var proposedBet = tp.biggestBet + tp.bigBlind;
+    let tp = this.sittingOnTable.public;
 
-    var callAmount = tp.biggestBet - this.public.bet;
-    if (callAmount > this.public.chipsInPlay) {
-        callAmount =  this.public.chipsInPlay;
-    }
-
-    var minBet = (callAmount > 0) ? callAmount : this.public.chipsInPlay < proposedBet ? this.public.chipsInPlay : proposedBet;
-
-    var maxBet = this.public.chipsInPlay + this.public.bet;
+    let callAmount = Math.min(tp.biggestBet, this.public.chipsInPlay);
+    let minRaise = Math.min(callAmount+tp.minBet, this.public.chipsInPlay);
+    let maxRaise = this.public.chipsInPlay + this.public.bet;
     // Since the slider only goes in steps of minBet, if the chipsInPlay is not a multiple of minBet, the slider won't select all chips to go all-in
     // So increase the slider range by minBet. The value is checked in bet() and raise() functions to ensure we are not bidding more than the player's stash
-    if ((maxBet % tp.minBet) !== 0) {
-        maxBet += tp.minBet;
+    if ((maxRaise % tp.minBet) !== 0) {
+        maxRaise += tp.minBet;
     }
 
-    this.socket.emit('showButtons', str, callAmount, minBet, maxBet);
+    this.socket.emit('showButtons', str, callAmount, minRaise, maxRaise);
 }
 
 /**
@@ -92,9 +87,9 @@ Player.prototype.sitOnTable = function( table, seat, chips ) {
     this.public.sittingIn = true;
 }
 
-Player.prototype.getCards = function(table) {
-    this.cards[0] = table.deck.getCard();
-    this.cards[1] = table.deck.getCard();
+Player.prototype.getCards = function() {
+    this.cards[0] = this.sittingOnTable.deck.getCard();
+    this.cards[1] = this.sittingOnTable.deck.getCard();
     this.public.hasCards = true;
     this.socket.emit('dealingCards', this.cards);
 }
@@ -112,14 +107,14 @@ Player.prototype.fold = function() {
  * The action of betting. Update the table's biggest bet and number of players allin.
  * @param number amount
  */
-Player.prototype.bet = function( tp, amount ) {
-    //amount = parseInt(amount);
+Player.prototype.bet = function(amount, raisedTo) {
     if( amount > this.public.chipsInPlay ) {
         amount = this.public.chipsInPlay;
     }
-    this.public.chipsInPlay -= amount;
-    this.public.bet += amount;
+    this.public.chipsInPlay -= amount - this.public.bet;
+    this.public.bet = amount;
 
+    let tp = this.sittingOnTable.public;
     tp.biggestBet = tp.biggestBet < amount ? amount : tp.biggestBet;
     tp.playersAllIn += this.public.chipsInPlay == 0 ? 1 : 0;
 }

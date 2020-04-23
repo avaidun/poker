@@ -90,7 +90,11 @@ io.sockets.on('connection', function( socket ) {
 				// Add the room to the player's data
 				players[socket.id].room = tableId;
 			} else {
-				callback( { 'success': true, buttons: players[socket.id].buttons } );
+				callback({
+					'success': true,
+					'table': players[socket.id].sittingOnTable.public,
+					'buttons': players[socket.id].buttons
+				});
 			}
 		}
 	});
@@ -270,7 +274,7 @@ io.sockets.on('connection', function( socket ) {
 	 * @param number amount
 	 * @param function callback
 	 */
-	socket.on('bet', function( amount, callback ){
+	socket.on('bet', function(amount, raised, callback) {
 		if (table = getTable(socket)) {
 			player = table.seats[table.public.activeSeat];
 			// Validating the bet amount
@@ -278,7 +282,7 @@ io.sockets.on('connection', function( socket ) {
 			if (amount && isFinite(amount) && amount <= player.public.chipsInPlay) {
 				// Sending the callback first, because the next functions may need to send data to the same player, that shouldn't be overwritten
 				callback({'success': true});
-				table.playerBet(amount);
+				table.playerBet(amount, raised);
 			}
 		}
 	});

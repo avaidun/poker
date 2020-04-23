@@ -13,7 +13,6 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.table.dealerSeat = null;
 	$scope.myCards = ['', ''];
 	$scope.mySeat = null;
-	$scope.betAmount = 0;
 	$rootScope.sittingOnTable = null;
 	$scope.gameIsOn = false;
     $scope.playerCount = 0;
@@ -30,16 +29,20 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	}).then(function( data, status, headers, config ) {
 		$scope.table = data.data.table;
 		$scope.buyInAmount = data.data.table.maxBuyIn;
-        $scope.betAmount = data.data.table.bigBlind;
+        // $scope.betAmount = data.data.table.bigBlind;
         $scope.defaultActionTimeout = data.data.table.defaultActionTimeout;
         $scope.minBet = data.data.table.minBet;
         $scope.gameIsOn = data.data.table.gameIsOn;
 	});
 
-	// Joining the socket room
+	// Joining the socket room.
 	socket.emit( 'enterRoom', $routeParams.tableId, function( response ) {
-		if( response.success ){
+		//When user leaves and joins back get back to the same state.
+		if( response.success ) {
+			$scope.table = response.table;
 			$scope.setButtons(response.buttons);
+			$rootScope.$digest();
+			$scope.$digest();
 		}
 	});
 
@@ -163,20 +166,9 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		});
 	}
 
-	$scope.bet = function() {
-        $scope.clearDefaultActionTimer();
-		socket.emit( 'bet', $scope.betAmount, function( response ) {
-			if( response.success ) {
-				sounds.playBetSound();
-				$scope.setButtons('');
-				$scope.$digest();
-			}
-		});
-	}
-
 	$scope.raise = function() {
         $scope.clearDefaultActionTimer();
-		socket.emit( 'bet', $scope.betAmount, function( response ) {
+		socket.emit( 'bet', $scope.raiseAmount, true, function( response ) {
 			if( response.success ) {
 				sounds.playRaiseSound();
 				$scope.setButtons('');
@@ -303,7 +295,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		$scope.setButtons(buttons);
 		console.log(buttons);
 		$scope.callAmount = callAmount;
-		$scope.betAmount = minRaise;
+		$scope.raiseAmount = minRaise;
         $scope.minRaise = minRaise;
         $scope.maxRaise = maxRaise;
         $scope.startDefaultActionTimer();

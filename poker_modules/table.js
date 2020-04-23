@@ -211,13 +211,13 @@ Table.prototype.initializeRound = function() {
 	if(!this.headsUp) {
 		this.public.activeSeat = this.findNextPlayer();
 	}
-	this.seats[this.public.activeSeat].bet(this.public, this.public.smallBlind);
+	this.seats[this.public.activeSeat].bet(this.public.smallBlind);
 	this.log(this.seats[this.public.activeSeat].public.name + ' posted the small blind', 'smallBlind');
 
 	//Post big blind
 	this.public.activeSeat = this.findNextPlayer();
 	this.lastPlayerToAct = this.public.activeSeat;
-	this.seats[this.public.activeSeat].bet(this.public, this.public.bigBlind);
+	this.seats[this.public.activeSeat].bet(this.public.bigBlind);
 	this.log(this.seats[this.public.activeSeat].public.name + ' posted the big blind', 'bigBlind');
 
 	//this.public.activeSeat = this.findNextPlayer();
@@ -231,7 +231,7 @@ Table.prototype.initializeRound = function() {
 
 	var currentPlayer = this.public.dealerSeat;
 	for( var i=0 ; i<this.playersInHandCount ; i++ ) {
-		this.seats[currentPlayer].getCards(this);
+		this.seats[currentPlayer].getCards();
 		currentPlayer = this.findNextPlayer( currentPlayer );
 	}
 	this.public.phase = 'preflop';
@@ -243,21 +243,25 @@ Table.prototype.initializeRound = function() {
  * Making the next player the active one
  */
 Table.prototype.actionToNextPlayer = function(seat) {
-	start = (seat !== undefined)  ? seat : this.public.activeSeat;
-	nextPlayer = this.findNextPlayer(start, true);
+
+	if (this.playersInHandCount == 1) {
+		this.showdown();
+		return;
+	}
+
+	let start = (seat !== undefined)  ? seat : this.public.activeSeat;
+	let nextPlayer = this.findNextPlayer(start, true);
 
 	if (seat === undefined && // new phase just started don't check for last player
 		(this.lastPlayerToAct === this.public.activeSeat // last player to act
-		|| nextPlayer == null)) { //no player has money left
+			|| nextPlayer == null)) { //no player has money left
 		this.endPhase();
 		return;
 	}
 
 	this.public.activeSeat = nextPlayer;
-	player = this.seats[this.public.activeSeat];
-	buttons = (this.public.biggestBet != player.public.bet) ? (this.public.playersSeatedCount - this.playersAllIn == 1) ? 'Fold:Call' : 'Fold:Call:Raise' : 'Fold:Check:Raise'
-	player.sendButtons(this.public, buttons);
-
+	let player = this.seats[this.public.activeSeat];
+	player.sendButtons((this.public.biggestBet != player.public.bet) ? (this.public.playersSeatedCount - this.playersAllIn == 1) ? 'Fold:Call' : 'Fold:Call:Raise' : 'Fold:Check:Raise');
 
 	this.emitEvent( 'table-data', this.public );
 }
@@ -295,26 +299,31 @@ Table.prototype.initializeNextPhase = function() {
  * The phase when the players show their hands until a winner is found
  */
 Table.prototype.showdown = function() {
-	this.pot.addTableBets( this.seats );
+	this.pot.addTableBets(this.seats);
 
 	var currentPlayer = this.findNextPlayer(this.public.dealerSeat);
-	var bestHandRating = 0;
+	var messages = [];
+	if (this.playersInHandCount == 1) {
+		messages.push(this.pot.giveToWinner(this.seats[currentPlayer]));
+		this.log(messages[0])
+	} else {
+		var bestHandRating = 0;
 
-	for( var i=0 ; i<this.playersInHandCount ; i++ ) {
-		this.seats[currentPlayer].evaluateHand( this.public.board );
-		// If the hand of the current player is the best one yet,
-		// he has to show it to the others in order to prove it
-		if( this.seats[currentPlayer].evaluatedHand.rating > bestHandRating ) {
-			this.seats[currentPlayer].public.cards = this.seats[currentPlayer].cards;
+		for (var i = 0; i < this.playersInHandCount; i++) {
+			this.seats[currentPlayer].evaluateHand(this.public.board);
+			// If the hand of the current player is the best one yet,
+			// he has to show it to the others in order to prove it
+			if (this.seats[currentPlayer].evaluatedHand.rating > bestHandRating) {
+				this.seats[currentPlayer].public.cards = this.seats[currentPlayer].cards;
+			}
+			currentPlayer = this.findNextPlayer(currentPlayer);
 		}
-		currentPlayer = this.findNextPlayer(currentPlayer);
-	}
 
-	var messages = this.pot.distributeToWinners( this.seats, currentPlayer );
-
-	var messagesCount = messages.length;
-	for( var i=0 ; i<messagesCount ; i++ ) {
-		this.log(messages[i]);
+		messages = this.pot.distributeToWinners(this.seats);
+		var messagesCount = messages.length;
+		for (var i = 0; i < messagesCount; i++) {
+			this.log(messages[i]);
+		}
 	}
 
 	var that = this;
@@ -362,15 +371,15 @@ Table.prototype.playerChecked = function() {
 /**
  * When a player bets
  */
-Table.prototype.playerBet = function(amount) {
+Table.prototype.playerBet = function(amount, raisedTo) {
 	player = this.seats[this.public.activeSeat];
 	pp = player.public;
 	if (amount <= this.public.biggestBet) {
-		var calledAmount = this.public.biggestBet - pp.bet;
-		player.bet(this.public, calledAmount);
-		this.log(pp.name + ' called', 'call', 'Call');
+		var calledAmount = this.public.biggestBet;
+		player.bet(calledAmount);
+		this.log(pp.name + ' called', 'call', 'Call ' + amount);
 	} else {
-		player.bet(this.public, amount);
+		player.bet(amount, raisedTo);
 		this.log(pp.name + ' raised to ' + amount, 'bet', 'Raised to ' + amount);
 		this.lastPlayerToAct = this.findPreviousPlayer();
 	}
@@ -437,6 +446,7 @@ Table.prototype.endRound = function() {
 	if( this.public.playersSeatedCount < 2 ) {
 		this.stopGame();
 	} else {
+		this.public.dealerSeat = this.findNextPlayer(this.public.dealerSeat);
 		this.initializeRound();
 	}
 };
@@ -455,6 +465,7 @@ Table.prototype.removePlayer = function(player, seat) {
 	// If there are not enough players to continue the game
 	if( this.public.playersSeatedCount < 2 ) {
 	    this.public.dealerSeat = null;
+	    this.stopGame();
 	}
 	this.actionToNextPlayer();
 }

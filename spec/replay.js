@@ -11,6 +11,7 @@ var table,
 
 var eventEmitter = function( tableId ) {
     return function (eventName, eventData) {
+            console.log(eventName + ":" + JSON.stringify(eventData));
     };
 };
 
@@ -23,7 +24,7 @@ var socket = {
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 10, 5, 500, 50, false, 3000000, 10);
 
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/Table2020-04-21T00-38.rr');
+    const fileStream = fs.createReadStream('../rrevents/Table2020-04-23T01-57.rr');
 
     const rl = readline.createInterface({
         input: fileStream,
@@ -51,13 +52,12 @@ async function processLineByLine() {
                 break;
             case 'call':
                 table.playerBet(0)
-                table.playerChecked();
                 break;
             case 'bet':
-                table.playerBet(parseInt(rec.notification.split(' ')[1]));
+                table.playerBet(parseInt(rec.notification.split(' ')[2]));
                 break;
             case 'raise':
-                table.playerBet(parseInt(rec.notification.split(' ')[1]));
+                table.playerBet(parseInt(rec.notification.split(' ')[2]));
                 break;
             case 'sat':
                 var msg = rec.message.split(':');
