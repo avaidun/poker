@@ -261,7 +261,7 @@ Table.prototype.actionToNextPlayer = function(seat) {
 
 	this.public.activeSeat = nextPlayer;
 	let player = this.seats[this.public.activeSeat];
-	player.sendButtons((this.public.biggestBet != player.public.bet) ? (this.public.playersSeatedCount - this.playersAllIn == 1) ? 'Fold:Call' : 'Fold:Call:Raise' : 'Fold:Check:Raise');
+	player.sendButtons((this.public.biggestBet != player.public.bet) ? (this.public.playersSeatedCount - this.playersAllIn == 1) ? 'Fold:Call' : 'Fold:Call:Raise' : 'Check:Raise');
 
 	this.emitEvent( 'table-data', this.public );
 }
@@ -466,6 +466,7 @@ Table.prototype.removePlayer = function(player, seat) {
 	if( this.public.playersSeatedCount < 2 ) {
 	    this.public.dealerSeat = null;
 	    this.stopGame();
+	    return;
 	}
 	this.actionToNextPlayer();
 }

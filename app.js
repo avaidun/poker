@@ -95,6 +95,8 @@ io.sockets.on('connection', function( socket ) {
 					'table': players[socket.id].sittingOnTable.public,
 					'buttons': players[socket.id].buttons
 				});
+
+				players[socket.id].socket.emit('dealingCards', players[socket.id].cards);
 			}
 		}
 	});

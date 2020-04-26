@@ -11,7 +11,7 @@ var table,
 
 var eventEmitter = function( tableId ) {
     return function (eventName, eventData) {
-            console.log(eventName + ":" + JSON.stringify(eventData));
+            // console.log(eventName + ":" + JSON.stringify(eventData));
     };
 };
 
@@ -23,8 +23,21 @@ var socket = {
 
 table = new Table( 0, 'REPLAY', eventEmitter(0), 10, 10, 5, 500, 50, false, 3000000, 10);
 
+var displayTable = function() {
+    let players = table.seats;
+
+    console.log("Pot:" + JSON.stringify(table.pot.pots));
+
+    for (const player of players) {
+        if (player && player.public.inHand) {
+            let pp = player.public;
+            console.log(pp.name + "{" + player.cards[0] + player.cards[1] + "}: Chips = " + pp.chipsInPlay + " Bet:" + pp.bet);
+        }
+    }
+}
+
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/Table2020-04-23T01-57.rr');
+    const fileStream = fs.createReadStream('../rrevents/Table2020-04-23T22-51.rr');
 
     const rl = readline.createInterface({
         input: fileStream,
@@ -36,8 +49,9 @@ async function processLineByLine() {
     var line = 1;
     for await (const str of rl) {
         // Each line in input.txt will be successively available here as `line`.
+        displayTable();
         rec = JSON.parse(str);
-        console.log(`Line from file: ${str}` + " dealer " + table.public.dealerSeat + " Active " + table.public.activeSeat);
+        console.log(line+`: ${str}`);
         switch (rec.action) {
             case 'gameStarted': // set the dealer seat and deck else it is randomized and will not be a true replay.
                 table.public.dealerSeat = rec.dealerSeat;

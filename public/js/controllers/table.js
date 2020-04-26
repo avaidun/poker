@@ -15,6 +15,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	$scope.mySeat = null;
 	$rootScope.sittingOnTable = null;
 	$scope.gameIsOn = false;
+	$scope.minBet = 0;
     $scope.playerCount = 0;
     $scope.defaultActionTimer = null;
 	var showingNotification = false;
@@ -41,6 +42,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 		if( response.success ) {
 			$scope.table = response.table;
 			$scope.setButtons(response.buttons);
+			$scope.gameIsOn = response.table.gameIsOn;
 			$rootScope.$digest();
 			$scope.$digest();
 		}
@@ -123,7 +125,7 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
         $scope.clearDefaultActionTimer();
 		socket.emit( 'autoFold', function( response ) {
 			if( response.success ) {
-				$rootScope.sittingOnTable = null;
+				//$rootScope.sittingOnTable = null;
 				$rootScope.totalChips = response.totalChips;
 				$rootScope.sittingIn = false;
 				$scope.setButtons('');
@@ -279,7 +281,8 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 	// When the game has stopped
 	socket.on( 'gameStopped', function( data ) {
 		$scope.table = data;
-		$scope.actionState = 'waiting';
+		$scope.gameIsOn = false;
+		$scope.setButtons('');
 		$scope.$digest();
 	});
 
@@ -292,15 +295,20 @@ function( $scope, $rootScope, $http, $routeParams, $timeout, sounds ) {
 
 	// When the user is asked to act and the pot was not betted
 	socket.on( 'showButtons', function(buttons, callAmount, minRaise, maxRaise ) {
-		$scope.setButtons(buttons);
+
 		console.log(buttons);
 		$scope.callAmount = callAmount;
 		$scope.raiseAmount = minRaise;
+		$scope.raiseIncrement = $scope.table.minBet;
         $scope.minRaise = minRaise;
         $scope.maxRaise = maxRaise;
+		$scope.setButtons(buttons);
+		$rootScope.$digest();
+		$scope.$digest();
+
         $scope.startDefaultActionTimer();
 
-		$scope.$digest();
+
 	});
 
 	//When game has started

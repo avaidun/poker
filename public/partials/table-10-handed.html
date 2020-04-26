@@ -107,9 +107,9 @@
 		</div>
 		<div class="slider-div" ng-show="showRaise">
 			<div class="raise-label">
-				Raise
+				Raise to
 			</div>
-			<input id="raise-slider" class="raise-slider" type="range" min="{{minRaise}}" max="{{maxRaise}}" ng-model="raiseAmount" step="{{table.minRaise}}" >
+			<input id="raise-slider" class="raise-slider" type="number" min="{{minRaise}}" max="{{maxRaise}}" ng-model="raiseAmount" step="{{raiseIncrement}}" >
 		</div>
 	</div>
 	<div id="zoom">
