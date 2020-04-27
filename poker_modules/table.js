@@ -180,7 +180,8 @@ Table.prototype.initializeRound = function() {
 	for (var i = 0; i < this.public.board.length; i++) {
 		this.public.board[i] = '';
 	}
-	this.deck.shuffle();
+	this.deck.shuffle(this.public.name !== "REPLAY");
+
 	this.headsUp = this.public.playersSeatedCount == 2;
 	this.playersInHandCount = 0;
 
@@ -254,8 +255,9 @@ Table.prototype.actionToNextPlayer = function(seat) {
 
 	if (seat === undefined && // new phase just started don't check for last player
 		(this.lastPlayerToAct === this.public.activeSeat // last player to act
-			|| nextPlayer == null)) { //no player has money left
-		this.endPhase();
+			|| nextPlayer == null //no player has money left
+			|| nextPlayer == this.public.activeSeat)) { //next player is same as current player
+		this.initializeNextPhase(nextPlayer == null || nextPlayer == this.public.activeSeat); // endRound
 		return;
 	}
 
@@ -269,27 +271,32 @@ Table.prototype.actionToNextPlayer = function(seat) {
 /**
  * Method that starts the next phase of the round
  */
-Table.prototype.initializeNextPhase = function() {
+Table.prototype.initializeNextPhase = function(noMoreBets) {
 	this.lastPlayerToAct = this.public.dealerSeat;
-	switch( this.public.phase ) {
-		case 'preflop':
-			this.public.phase = 'flop';
-			for (var i = 0; i < 3; i++) {
-				this.public.board[i] = this.deck.getCard();
-			}
-			break;
-		case 'flop':
-			this.public.phase = 'turn';
-			this.public.board[3] = this.deck.getCard();
-			break;
-		case 'turn':
-			this.public.phase = 'river';
-			this.public.board[4] = this.deck.getCard();
-			break;
-	}
-
 	this.pot.addTableBets( this.seats );
 	this.public.biggestBet = 0;
+
+	do { //just deal the remaining cards on board and showdown.
+		switch (this.public.phase) {
+			case 'preflop':
+				this.public.phase = 'flop';
+				for (var i = 0; i < 3; i++) {
+					this.public.board[i] = this.deck.getCard();
+				}
+				break;
+			case 'flop':
+				this.public.phase = 'turn';
+				this.public.board[3] = this.deck.getCard();
+				break;
+			case 'turn':
+				this.public.phase = 'river';
+				this.public.board[4] = this.deck.getCard();
+				break;
+			case 'river':
+				this.showdown();
+				return;
+		}
+	} while (noMoreBets);
 
 	this.actionToNextPlayer(this.public.dealerSeat);
 }
@@ -326,25 +333,17 @@ Table.prototype.showdown = function() {
 		}
 	}
 
-	var that = this;
-	setTimeout( function(){
-		that.endRound();
-	}, 10000 );
+	// if (this.public.name === "REPLAY") {
+	// 	this.endRound();
+	// } else {
+		var that = this;
+		setTimeout(function () {
+			that.endRound();
+		}, 10000);
+	// }
 
 	return (messages); // for unit tests
 };
-
-/**
- * Ends the current phase of the round
- */
-Table.prototype.endPhase = function() {
-	if (this.public.phase !== 'river') {
-		this.initializeNextPhase();
-	}
-	else {
-		this.showdown();
-	}
-}
 
 /**
  * Checks if the round should continue after a player has folded
@@ -371,15 +370,15 @@ Table.prototype.playerChecked = function() {
 /**
  * When a player bets
  */
-Table.prototype.playerBet = function(amount, raisedTo) {
+Table.prototype.playerBet = function(amount) {
 	player = this.seats[this.public.activeSeat];
 	pp = player.public;
 	if (amount <= this.public.biggestBet) {
 		var calledAmount = this.public.biggestBet;
 		player.bet(calledAmount);
-		this.log(pp.name + ' called', 'call', 'Call ' + amount);
+		this.log(pp.name + ' called', 'call', 'Call ' + calledAmount);
 	} else {
-		player.bet(amount, raisedTo);
+		player.bet(amount);
 		this.log(pp.name + ' raised to ' + amount, 'bet', 'Raised to ' + amount);
 		this.lastPlayerToAct = this.findPreviousPlayer();
 	}
@@ -445,6 +444,7 @@ Table.prototype.endRound = function() {
 	// If there are not enough players to continue the game, stop it
 	if( this.public.playersSeatedCount < 2 ) {
 		this.stopGame();
+		return;
 	} else {
 		this.public.dealerSeat = this.findNextPlayer(this.public.dealerSeat);
 		this.initializeRound();

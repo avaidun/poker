@@ -107,9 +107,9 @@ Player.prototype.fold = function() {
  * The action of betting. Update the table's biggest bet and number of players allin.
  * @param number amount
  */
-Player.prototype.bet = function(amount, raisedTo) {
-    if( amount > this.public.chipsInPlay ) {
-        amount = this.public.chipsInPlay;
+Player.prototype.bet = function(amount) {
+    if(amount > this.public.chipsInPlay + this.public.bet) {
+        amount = this.public.chipsInPlay + this.public.bet;
     }
     this.public.chipsInPlay -= amount - this.public.bet;
     this.public.bet = amount;

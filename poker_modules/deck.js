@@ -19,9 +19,11 @@ var Deck = function() {
 };
 
 // Method that shuffles the deck
-Deck.prototype.shuffle = function(){
+Deck.prototype.shuffle = function(randomize){
   // Going back to the top of the deck
   this.nextCard = 0;
+  if (!randomize) return;
+
   var shuffledDeck = [];
 
   for( var i=0 ; i<52 ; i++ ) {

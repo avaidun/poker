@@ -27,6 +27,7 @@ var displayTable = function() {
     let players = table.seats;
 
     console.log("Pot:" + JSON.stringify(table.pot.pots));
+    console.log("Board:" + JSON.stringify(table.public.board))
 
     for (const player of players) {
         if (player && player.public.inHand) {
@@ -51,12 +52,12 @@ async function processLineByLine() {
         // Each line in input.txt will be successively available here as `line`.
         displayTable();
         rec = JSON.parse(str);
-        console.log(line+`: ${str}`);
+        console.log('\n'+line+`: ${str}`);
         switch (rec.action) {
             case 'gameStarted': // set the dealer seat and deck else it is randomized and will not be a true replay.
                 table.public.dealerSeat = rec.dealerSeat;
-                table.initializeRound(false);
                 table.deck.cards = rec.cards;
+                table.initializeRound();
                 break;
             case 'fold':
                 table.playerFolded();
