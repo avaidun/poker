@@ -30,7 +30,7 @@ var displayTable = function() {
     console.log("Board:" + JSON.stringify(table.public.board))
 
     for (const player of players) {
-        if (player && player.public.inHand) {
+        if (player) {
             let pp = player.public;
             console.log(pp.name + "{" + player.cards[0] + player.cards[1] + "}: Chips = " + pp.chipsInPlay + " Bet:" + pp.bet);
         }
@@ -50,7 +50,7 @@ async function processLineByLine() {
     var line = 1;
     for await (const str of rl) {
         // Each line in input.txt will be successively available here as `line`.
-        displayTable();
+
         rec = JSON.parse(str);
         console.log('\n'+line+`: ${str}`);
         switch (rec.action) {
@@ -90,6 +90,7 @@ async function processLineByLine() {
                     console.log(`Line from file: ${str}`);
         }
         line++;
+        displayTable();
     }
 }
 

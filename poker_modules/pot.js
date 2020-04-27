@@ -50,8 +50,11 @@ Pot.prototype.addTableBets = function( players ) {
             }
         }
 
-        // Creating a sidepot if required
-        if (sidePotRequired) {
+        if (this.pots[currentPot].contributors.length == 1) { //player put more than other players return the excess back to player
+            let player = players[this.pots[currentPot].contributors[0]];
+            player.wins(this.pots[currentPot].amount);
+            this.pots.pop();
+        } else if (sidePotRequired) {         // Creating a sidepot if required
             this.pots.push({amount: 0, contributors: []});
         }
     } while (remaining > 0);
@@ -110,6 +113,10 @@ Pot.prototype.distributeToWinners = function (players, firstPlayerToAct) {
 Pot.prototype.giveToWinner = function( winner ) {
   var potsCount = this.pots.length;
   var totalAmount = 0;
+
+  //return the money that was bet.
+  winner.wins(winner.public.bet);
+  winner.public.bet = 0;
 
   for( var i=potsCount-1 ; i>=0 ; i-- ) {
     winner.wins(this.pots[i].amount);

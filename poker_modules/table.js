@@ -252,13 +252,17 @@ Table.prototype.actionToNextPlayer = function(seat) {
 
 	let start = (seat !== undefined)  ? seat : this.public.activeSeat;
 	let nextPlayer = this.findNextPlayer(start, true);
+	let noMoreBets = (nextPlayer == null || this.seats[nextPlayer].public.bet > this.public.biggestBet); //no player has money left
 
-	if (seat === undefined && // new phase just started don't check for last player
-		(this.lastPlayerToAct === this.public.activeSeat // last player to act
-			|| nextPlayer == null //no player has money left
-			|| nextPlayer == this.public.activeSeat)) { //next player is same as current player
-		this.initializeNextPhase(nextPlayer == null || nextPlayer == this.public.activeSeat); // endRound
-		return;
+	if (seat === undefined) {
+		// new phase just started don't check for last player
+		if (this.lastPlayerToAct === this.public.activeSeat) {
+			this.initializeNextPhase(false); // endRound
+		}
+		else if (noMoreBets) {
+			this.initializeNextPhase(true);
+			return;
+		}
 	}
 
 	this.public.activeSeat = nextPlayer;
@@ -306,40 +310,42 @@ Table.prototype.initializeNextPhase = function(noMoreBets) {
  * The phase when the players show their hands until a winner is found
  */
 Table.prototype.showdown = function() {
-	this.pot.addTableBets(this.seats);
-
-	var currentPlayer = this.findNextPlayer(this.public.dealerSeat);
 	var messages = [];
+	var currentPlayer = this.findNextPlayer(this.public.dealerSeat);
+
 	if (this.playersInHandCount == 1) {
 		messages.push(this.pot.giveToWinner(this.seats[currentPlayer]));
-		this.log(messages[0])
-	} else {
-		var bestHandRating = 0;
-
-		for (var i = 0; i < this.playersInHandCount; i++) {
-			this.seats[currentPlayer].evaluateHand(this.public.board);
-			// If the hand of the current player is the best one yet,
-			// he has to show it to the others in order to prove it
-			if (this.seats[currentPlayer].evaluatedHand.rating > bestHandRating) {
-				this.seats[currentPlayer].public.cards = this.seats[currentPlayer].cards;
-			}
-			currentPlayer = this.findNextPlayer(currentPlayer);
-		}
-
-		messages = this.pot.distributeToWinners(this.seats);
-		var messagesCount = messages.length;
-		for (var i = 0; i < messagesCount; i++) {
-			this.log(messages[i]);
-		}
+		this.log(messages[0]);
+		return;
 	}
+
+	this.pot.addTableBets(this.seats);
+	var bestHandRating = 0;
+
+	for (var i = 0; i < this.playersInHandCount; i++) {
+		this.seats[currentPlayer].evaluateHand(this.public.board);
+		// If the hand of the current player is the best one yet,
+		// he has to show it to the others in order to prove it
+		if (this.seats[currentPlayer].evaluatedHand.rating > bestHandRating) {
+			this.seats[currentPlayer].public.cards = this.seats[currentPlayer].cards;
+		}
+		currentPlayer = this.findNextPlayer(currentPlayer);
+	}
+
+	messages = this.pot.distributeToWinners(this.seats);
+	var messagesCount = messages.length;
+	for (var i = 0; i < messagesCount; i++) {
+		this.log(messages[i]);
+	}
+
 
 	// if (this.public.name === "REPLAY") {
 	// 	this.endRound();
 	// } else {
-		var that = this;
-		setTimeout(function () {
-			that.endRound();
-		}, 10000);
+	var that = this;
+	setTimeout(function () {
+		that.endRound();
+	}, 10000);
 	// }
 
 	return (messages); // for unit tests
@@ -371,8 +377,8 @@ Table.prototype.playerChecked = function() {
  * When a player bets
  */
 Table.prototype.playerBet = function(amount) {
-	player = this.seats[this.public.activeSeat];
-	pp = player.public;
+	let player = this.seats[this.public.activeSeat];
+	let pp = player.public;
 	if (amount <= this.public.biggestBet) {
 		var calledAmount = this.public.biggestBet;
 		player.bet(calledAmount);
