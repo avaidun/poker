@@ -38,7 +38,7 @@ var displayTable = function() {
 }
 
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/missing chips call should stop reloading crashed.rr');
+    const fileStream = fs.createReadStream('../rrevents/fold line38  gives back more than in pot.rr');
 
     const rl = readline.createInterface({
         input: fileStream,
@@ -83,8 +83,8 @@ async function processLineByLine() {
                 break;
             case 'left':
                 var seat = parseInt(rec.message.split(':')[1]);
-                table.playerLeft(seat);
-                players[seat] = null;
+                //table.playerLeft(seat);
+                //players[seat] = null;
                 break;
                 default:
                     console.log(`Line from file: ${str}`);

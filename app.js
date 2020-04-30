@@ -119,12 +119,14 @@ io.sockets.on('connection', function( socket ) {
 	//TODO allow player to reconnect
 	socket.on('disconnect', function() {
 		// If the socket points to a player object
-		if( typeof players[socket.id] !== 'undefined' ) {
-			// Remove the player from the seat
-			players[socket.id].playerLeft();
-			// Remove the player object from the players array
-			delete players[socket.id];
-		}
+		// var table = getTable(socket);
+		// var player = players[socket.id];
+		// if (table && player) {
+		// 	// Remove the player from the seat
+		// 	players[socket.id].playerLeft();
+		// 	// Remove the player object from the players array
+		// 	delete players[socket.id];
+		// }
 	});
 
 	/**

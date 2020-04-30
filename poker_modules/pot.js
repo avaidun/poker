@@ -53,6 +53,7 @@ Pot.prototype.addTableBets = function( players ) {
             if (this.pots[currentPot].contributors.length == 1) { //player put more than other players return the excess back to player
                 let player = players[this.pots[currentPot].contributors[0]];
                 player.wins(this.pots[currentPot].amount);
+                this.pots[currentPot].amount = 0;
                 if (this.pots.length > 1) {
                     this.pots.pop();
                 }
@@ -134,14 +135,15 @@ Pot.prototype.giveToWinner = function( winner ) {
  * Removing a player from all the pots
  * @param  number   seat
  */
-Pot.prototype.removePlayer = function( seat ) {
-  var potsCount = this.pots.length;
-  for( var i=0 ; i<potsCount ; i++ ) {
-    var placeInArray = this.pots[i].contributors.indexOf( seat );
-    if( placeInArray >= 0 ) {
-      this.pots[i].contributors.splice( placeInArray, 1 );
+Pot.prototype.removePlayer = function( player ) {
+    this.pots[this.pots.length - 1].amount += player.public.bet;
+    player.public.bet = 0;
+    for (var i = 0; i < this.pots.length; i++) {
+        var placeInArray = this.pots[i].contributors.indexOf(player.seat);
+        if (placeInArray >= 0) {
+            this.pots[i].contributors.splice(placeInArray, 1);
+        }
     }
-  }
 }
 
 Pot.prototype.isEmpty = function() {

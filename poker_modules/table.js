@@ -250,10 +250,9 @@ Table.prototype.actionToNextPlayer = function(seat) {
 
 	if (seat === undefined) { // check only if not start of new phase
 		//no player has money left or the next player has already bet more when all other players are already allin.
-		if (nextPlayer == null || nextPlayer == start ||
-			((this.public.biggestBet <= nplayer.public.bet) && this.public.playersSeatedCount - this.playersAllIn == 1) ||
-			(this.lastPlayerToAct === this.public.activeSeat)) {
-			this.initializeNextPhase();
+		let noMoreBets = nextPlayer == null || nextPlayer == start || ((this.public.biggestBet <= nplayer.public.bet) && this.public.playersSeatedCount - this.playersAllIn == 1)
+		if (noMoreBets || (this.lastPlayerToAct === this.public.activeSeat)) {
+			this.initializeNextPhase(noMoreBets);
 			return;
 		}
 		// if (this.lastPlayerToAct === this.public.activeSeat) {
@@ -271,12 +270,12 @@ Table.prototype.actionToNextPlayer = function(seat) {
 /**
  * Method that starts the next phase of the round
  */
-Table.prototype.initializeNextPhase = function() {
+Table.prototype.initializeNextPhase = function(noMoreBets) {
 	this.lastPlayerToAct = this.public.dealerSeat;
 	this.pot.addTableBets( this.seats );
 	this.public.biggestBet = 0;
 
-	// do { //just deal the remaining cards on board and showdown.
+	do { //just deal the remaining cards on board and showdown.
 		switch (this.public.phase) {
 			case 'preflop':
 				this.public.phase = 'flop';
@@ -296,7 +295,7 @@ Table.prototype.initializeNextPhase = function() {
 				this.showdown();
 				return;
 		}
-	// } while (noMoreBets);
+	} while (noMoreBets);
 
 	this.actionToNextPlayer(this.public.dealerSeat);
 }
@@ -308,14 +307,17 @@ Table.prototype.initializeNextPhase = function() {
 Table.prototype.showdown = function() {
 	let messages = [];
 	let currentPlayer = this.findNextPlayer(this.public.dealerSeat);
-	this.pot.addTableBets(this.seats);
+
 
 	if (this.playersInHandCount == 1) {
-		messages.push(this.pot.giveToWinner(this.seats[currentPlayer]));
+		let winner = this.seats[currentPlayer];
+		winner.wins(winner.public.bet); // gets back the bet.
+		winner.public.bet = 0;
+		messages.push(this.pot.giveToWinner(winner));
 		this.log(messages[0]);
 	} else {
 		let bestHandRating = 0;
-
+		this.pot.addTableBets(this.seats);
 		for (let i = 0; i < this.playersInHandCount; i++) {
 			this.seats[currentPlayer].evaluateHand(this.public.board);
 			// If the hand of the current player is the best one yet,
@@ -355,7 +357,7 @@ Table.prototype.playerFolded = function() {
 		'fold', 'Fold');
 
 	this.playersInHandCount--;
-	this.pot.removePlayer(this.public.activeSeat);
+	this.pot.removePlayer(this.seats[this.public.activeSeat]);
 	if (this.playersInHandCount == 1) {
 		this.showdown();
 	} else {
