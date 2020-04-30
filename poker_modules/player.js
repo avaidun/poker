@@ -117,6 +117,7 @@ Player.prototype.bet = function(amount) {
     let tp = this.sittingOnTable.public;
     tp.biggestBet = tp.biggestBet < amount ? amount : tp.biggestBet;
     tp.playersAllIn += this.public.chipsInPlay == 0 ? 1 : 0;
+    return amount;
 }
 
 /**

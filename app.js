@@ -281,7 +281,7 @@ io.sockets.on('connection', function( socket ) {
 			player = table.seats[table.public.activeSeat];
 			// Validating the bet amount
 			amount = parseInt(amount);
-			if (amount && isFinite(amount) && amount <= player.public.chipsInPlay) {
+			if (amount && isFinite(amount)) {
 				// Sending the callback first, because the next functions may need to send data to the same player, that shouldn't be overwritten
 				callback({'success': true});
 				table.playerBet(amount, raised);

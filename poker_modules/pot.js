@@ -49,13 +49,16 @@ Pot.prototype.addTableBets = function( players ) {
                 }
             }
         }
-
-        if (this.pots[currentPot].contributors.length == 1) { //player put more than other players return the excess back to player
-            let player = players[this.pots[currentPot].contributors[0]];
-            player.wins(this.pots[currentPot].amount);
-            this.pots.pop();
-        } else if (sidePotRequired) {         // Creating a sidepot if required
-            this.pots.push({amount: 0, contributors: []});
+        if (sidePotRequired) {
+            if (this.pots[currentPot].contributors.length == 1) { //player put more than other players return the excess back to player
+                let player = players[this.pots[currentPot].contributors[0]];
+                player.wins(this.pots[currentPot].amount);
+                if (this.pots.length > 1) {
+                    this.pots.pop();
+                }
+            } else {        // Creating a sidepot if required
+                this.pots.push({amount: 0, contributors: []});
+            }
         }
     } while (remaining > 0);
 }

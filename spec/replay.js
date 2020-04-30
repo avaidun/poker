@@ -38,7 +38,7 @@ var displayTable = function() {
 }
 
 async function processLineByLine() {
-    const fileStream = fs.createReadStream('../rrevents/Table2020-04-23T22-51.rr');
+    const fileStream = fs.createReadStream('../rrevents/missing chips call should stop reloading crashed.rr');
 
     const rl = readline.createInterface({
         input: fileStream,
